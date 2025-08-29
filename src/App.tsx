@@ -1,0 +1,547 @@
+// src/App.tsx
+// ------------------------------------------------------------
+// SECTION: Imports
+// ------------------------------------------------------------
+import React, { useEffect, useMemo, useRef, useState } from 'react'
+import Globe from 'react-globe.gl'
+import * as THREE from 'three'
+import { feature } from 'topojson-client'
+import { presimplify, simplify } from 'topojson-simplify'
+
+// ------------------------------------------------------------
+// SECTION: Grouping: selectable country bundles + helpers
+// ------------------------------------------------------------
+type GroupKey = 'CAN' | 'USA' | 'GBR' | 'CHN' | 'AUS'
+
+const GROUPS: Record<
+  GroupKey,
+  { iso3: string[]; names: string[] }
+> = {
+  CAN: { iso3: ['CAN'], names: ['Canada'] },
+  USA: { iso3: ['USA'], names: ['United States of America', 'United States', 'USA'] },
+  GBR: {
+    iso3: ['GBR'],
+    names: [
+      'United Kingdom',
+      'United Kingdom of Great Britain and Northern Ireland',
+      'Great Britain',
+      'UK',
+      'England',
+      'Scotland',
+      'Wales',
+      'Northern Ireland'
+    ]
+  },
+  CHN: { iso3: ['CHN'], names: ['China', 'People’s Republic of China', 'Peoples Republic of China'] },
+  AUS: { iso3: ['AUS'], names: ['Australia'] }
+}
+
+function norm(s?: string) {
+  return (s || '')
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+}
+
+// property accessors across datasets
+function props(f: any) { return f?.properties ?? {} }
+function getFeatISO3(f: any): string | undefined {
+  const p = props(f)
+  return (
+    p.ISO_A3 || p.iso_a3 ||
+    p.ADM0_A3 || p.adm0_a3 ||
+    p.SOV_A3 || p.sov_a3 ||
+    p.WB_A3  || p.wb_a3  ||
+    p.GU_A3  || p.gu_a3  ||
+    p.SU_A3  || p.su_a3  ||
+    p.A3     || p.a3
+  )
+}
+function getFeatName(f: any): string | undefined {
+  const p = props(f)
+  return (
+    p.ADMIN || p.admin ||
+    p.NAME_LONG || p.name_long ||
+    p.NAME_EN || p.name_en ||
+    p.NAME || p.name ||
+    p.SOVEREIGNT || p.sovereignt ||
+    p.GEOUNIT || p.geounit ||
+    p.BRK_NAME || p.brk_name
+  )
+}
+
+// which of our 5 groups does a feature belong to?
+function groupId(f: any): GroupKey | null {
+  const iso = (getFeatISO3(f) || '').toUpperCase()
+  const nameN = norm(getFeatName(f))
+
+  for (const key of Object.keys(GROUPS) as GroupKey[]) {
+    if (GROUPS[key].iso3.includes(iso)) return key
+  }
+  for (const key of Object.keys(GROUPS) as GroupKey[]) {
+    for (const nm of GROUPS[key].names) {
+      if (norm(nm) === nameN) return key
+    }
+  }
+  if (nameN.includes('united kingdom') || nameN.includes('great britain')) return 'GBR'
+  return null
+}
+function isSelectable(f: any) { return groupId(f) !== null }
+
+// ------------------------------------------------------------
+// SECTION: Stats (match by ISO3 or name)
+// ------------------------------------------------------------
+const COUNTRY_STATS: Record<string, { offices: number; employees: number }> = {
+  CAN: { offices: 6, employees: 562 }, Canada: { offices: 6, employees: 562 },
+  USA: { offices: 14, employees: 3280 }, 'United States of America': { offices: 14, employees: 3280 },
+  GBR: { offices: 3, employees: 420 }, 'United Kingdom': { offices: 3, employees: 420 },
+  CHN: { offices: 8, employees: 1900 }, China: { offices: 8, employees: 1900 },
+  AUS: { offices: 4, employees: 510 }, Australia: { offices: 4, employees: 510 }
+}
+
+// ------------------------------------------------------------
+// SECTION: Colors
+// ------------------------------------------------------------
+const COLOR_DARK = 'rgba(45,45,45,1)'         // non-selectable
+const COLOR_MID  = 'rgba(160,160,160,1)'      // selectable idle
+
+
+// Flat globe material (no lighting / no hotspot)
+const useFlatGlobeMaterial = () =>
+  new THREE.MeshBasicMaterial({ color: 0x0b0b0b }) // tweak base globe tone here
+
+// ------------------------------------------------------------
+// SECTION: Easing (cubic-bezier)
+// ------------------------------------------------------------
+function cubicBezier(x1: number, y1: number, x2: number, y2: number) {
+  const NEWTON_ITER = 8, NEWTON_EPS = 1e-6, SUBDIV_EPS = 1e-7
+  const ax = 3 * x1 - 3 * x2 + 1, bx = -6 * x1 + 3 * x2, cx = 3 * x1
+  const ay = 3 * y1 - 3 * y2 + 1, by = -6 * y1 + 3 * y2, cy = 3 * y1
+  const sampleX = (t: number) => ((ax * t + bx) * t + cx) * t
+  const sampleY = (t: number) => ((ay * t + by) * t + cy) * t
+  const slopeX  = (t: number) => (3 * ax * t + 2 * bx) * t + cx
+  function solveX(x: number) {
+    let t = x
+    for (let i = 0; i < NEWTON_ITER; i++) {
+      const s = slopeX(t); if (Math.abs(s) < NEWTON_EPS) break
+      t -= (sampleX(t) - x) / s
+    }
+    let t0 = 0, t1 = 1
+    while (t0 < t1) {
+      const xEst = sampleX(t)
+      if (Math.abs(xEst - x) < SUBDIV_EPS) return t
+      if (x > xEst) t0 = t; else t1 = t
+      t = (t0 + t1) / 2
+      if (t1 - t0 < SUBDIV_EPS) break
+    }
+    return t
+  }
+  return (x: number) => sampleY(solveX(Math.min(Math.max(x, 0), 1)))
+}
+const easeCB = cubicBezier(0.48, 0.2, 0.05, 0.99)
+const easeInOut = cubicBezier(0.42, 0.00, 0.58, 1.00)
+
+// ------------------------------------------------------------
+// SECTION: Rim-glow shaders (Fresnel)
+// ------------------------------------------------------------
+// Fresnel tuned for limb-only glow. Center stays dark.
+const RIM_VS = `
+uniform float p;           // falloff power
+varying float vIntensity;
+
+void main() {
+  vec3 vNormal = normalize(normalMatrix * normal);
+  vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
+  vec3 vDir = normalize(-mvPos.xyz);
+  float rim = 1.0 - abs(dot(vNormal, vDir));
+  vIntensity = pow(clamp(rim, 0.0, 1.0), p);
+  gl_Position = projectionMatrix * mvPos;
+}
+`
+
+const RIM_FS = `
+uniform vec3  glowColor;
+uniform float strength;    // 0..1 overall intensity
+varying float vIntensity;
+
+void main() {
+  float i = vIntensity * strength;
+  if (i < 0.02) discard;
+  gl_FragColor = vec4(glowColor * i, i);
+}
+`
+
+// ------------------------------------------------------------
+// SECTION: Component
+// ------------------------------------------------------------
+export default function App() {
+  const globeRef = useRef<any>(null)
+
+  const [geoJson, setGeoJson]   = useState<any>(null)
+  const [hovered, setHovered]   = useState<any>(null)
+  const [selected, setSelected] = useState<any>(null)
+
+  const [fadeT, setFadeT] = useState(0)
+  const fadeRAF = useRef<number | null>(null)
+
+  // flat globe material (no lighting)
+  const globeMat = useMemo(() => useFlatGlobeMaterial(), [])
+
+  // ----------------------------------------------------------
+  // SECTION: Data fetch (with fallbacks) — 50m simplified
+  // ----------------------------------------------------------
+  useEffect(() => {
+    (async () => {
+      const MIN_W = 0.03 // raise to 0.04–0.06 for fewer points
+
+      // map world-atlas numeric ids → props your accessors expect
+      const ID_TO_PROPS: Record<number, { ISO_A3: string; NAME: string }> = {
+        840: { ISO_A3: 'USA', NAME: 'United States of America' },
+        124: { ISO_A3: 'CAN', NAME: 'Canada' },
+        826: { ISO_A3: 'GBR', NAME: 'United Kingdom' },
+        156: { ISO_A3: 'CHN', NAME: 'China' },
+        36:  { ISO_A3: 'AUS', NAME: 'Australia' }
+      }
+
+      try {
+        const topo = await (await fetch(
+          'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json',
+          { mode: 'cors' }
+        )).json()
+
+        const topoPresimplified = presimplify(topo)
+        const topoSimplified    = simplify(topoPresimplified, MIN_W)
+        const fc: any = feature(topoSimplified, topoSimplified.objects.countries)
+
+        // inject ISO/name props (so your existing accessors keep working)
+        fc.features.forEach((f: any) => {
+          const id = +f.id
+          const props = ID_TO_PROPS[id]
+          f.properties = { ...(f.properties || {}), ...(props || {}) }
+          if (props) {
+            f.properties.ISO_A3  = props.ISO_A3
+            f.properties.NAME    = props.NAME
+            f.properties.NAME_EN = props.NAME
+            f.properties.ADMIN   = props.NAME
+          }
+        })
+
+        setGeoJson({ type: 'FeatureCollection', features: fc.features })
+        return
+      } catch (e) {
+        console.warn('[50m topo] failed, falling back:', e)
+      }
+
+      // fallbacks (your original sources)
+      const fallbacks = [
+        'https://cdn.jsdelivr.net/npm/three-globe@2.31.1/example/datasets/ne_110m_admin_0_countries.geojson',
+        'https://unpkg.com/three-globe@2.31.1/example/datasets/ne_110m_admin_0_countries.geojson',
+        'https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson'
+      ]
+      for (const url of fallbacks) {
+        try {
+          const res = await fetch(url, { mode: 'cors' })
+          if (!res.ok) throw new Error(`HTTP ${res.status}`)
+          const data = await res.json()
+          if (data?.features?.length) { setGeoJson(data); return }
+        } catch (e) {
+          console.warn('[fallback] failed:', url, e)
+        }
+      }
+
+      console.error('[world polygons] All sources failed')
+    })()
+  }, [])
+
+  // ----------------------------------------------------------
+  // SECTION: Controls (autorotate + damping)
+  // ----------------------------------------------------------
+  useEffect(() => {
+    if (!globeRef.current) return
+    const controls = globeRef.current.controls()
+    controls.enableDamping = true
+    controls.dampingFactor = 0.05
+    controls.autoRotate = true
+    controls.autoRotateSpeed = 0.25
+
+    const pause  = () => (controls.autoRotate = false)
+    const resume = () => (controls.autoRotate = true)
+
+    controls.addEventListener('start', pause)
+    controls.addEventListener('end', resume)
+    return () => {
+      controls.removeEventListener('start', pause)
+      controls.removeEventListener('end', resume)
+    }
+  }, [])
+
+  // ----------------------------------------------------------
+  // SECTION: POV “screen lift” (target below center so country sits higher)
+  // ----------------------------------------------------------
+  const SCREEN_LIFT_DEG = 12
+  function applyScreenLift(lat: number, liftDeg = SCREEN_LIFT_DEG) {
+    const out = lat - liftDeg
+    return Math.max(-85, Math.min(85, out))
+  }
+
+  // ----------------------------------------------------------
+  // SECTION: POV animation (cubic-bezier)
+// ----------------------------------------------------------
+  function animatePOV(
+    to: { lat: number; lng: number; altitude: number },
+    ms = 1000,
+    easing: (t: number) => number = easeCB
+  ) {
+    const g = globeRef.current; if (!g) return
+    const from = g.pointOfView()
+    let dLng = to.lng - from.lng
+    if (dLng > 180) dLng -= 360
+    if (dLng < -180) dLng += 360
+    const t0 = performance.now()
+    function step(now: number) {
+      const p = Math.min(1, (now - t0) / ms)
+      const e = easing(p)
+      g.pointOfView({
+        lat: from.lat + (to.lat - from.lat) * e,
+        lng: from.lng + dLng * e,
+        altitude: from.altitude + (to.altitude - from.altitude) * e
+      })
+      if (p < 1) requestAnimationFrame(step)
+    }
+    requestAnimationFrame(step)
+  }
+
+  // ----------------------------------------------------------
+  // SECTION: Selection fade (delay 500ms; duration 1000ms)
+// ----------------------------------------------------------
+  function startEasedFade(delayMs = 500, durMs = 1000) {
+    if (fadeRAF.current) cancelAnimationFrame(fadeRAF.current)
+    const t0 = performance.now() + delayMs
+    const t1 = t0 + durMs
+    const tick = (now: number) => {
+      if (now < t0) { setFadeT(0); fadeRAF.current = requestAnimationFrame(tick); return }
+      const p = Math.min(1, (now - t0) / (t1 - t0))
+      setFadeT(easeCB(p))
+      if (p < 1) fadeRAF.current = requestAnimationFrame(tick)
+    }
+    fadeRAF.current = requestAnimationFrame(tick)
+  }
+
+  // ----------------------------------------------------------
+  // SECTION: Initial camera
+  // ----------------------------------------------------------
+  useEffect(() => {
+    const lat0 = 40, lng0 = -10
+    const lat = applyScreenLift(lat0)
+    globeRef.current?.pointOfView({ lat, lng: lng0, altitude: 2.1 }, 0)
+  }, [])
+
+  // ----------------------------------------------------------
+  // SECTION: Rim glows (inner limb only)
+// ----------------------------------------------------------
+  useEffect(() => {
+    const globe = globeRef.current
+    if (!globe) return
+
+    const RADIUS = 100
+    const scene  = globe.scene()
+
+    const glowGroup = new THREE.Group()
+    scene.add(glowGroup)
+
+    // INNER LIMB
+    const innerMat = new THREE.ShaderMaterial({
+      uniforms: {
+        p:         { value: 1.0 },
+        strength:  { value: 0.8 },
+        glowColor: { value: new THREE.Color(0xffffff) }
+      },
+      vertexShader: RIM_VS,
+      fragmentShader: RIM_FS,
+      side: THREE.FrontSide,
+      blending: THREE.AdditiveBlending,
+      transparent: true,
+      depthWrite: false,
+      depthTest: false
+    })
+    const inner = new THREE.Mesh(
+      new THREE.SphereGeometry(RADIUS * 1.000, 128, 128),
+      innerMat
+    )
+    inner.renderOrder = 999001
+    glowGroup.add(inner)
+
+    return () => {
+      scene.remove(glowGroup)
+      glowGroup.traverse(obj => {
+        const mesh = obj as THREE.Mesh
+        // @ts-ignore
+        mesh.material?.dispose?.()
+        mesh.geometry?.dispose?.()
+      })
+    }
+  }, [])
+
+  // ----------------------------------------------------------
+  // SECTION: Label from selected group
+  // ----------------------------------------------------------
+  const labelInfo = useMemo(() => {
+    if (!selected) return null
+    const g = groupId(selected) as GroupKey | null
+    if (!g) return null
+    const canonicalName: Record<GroupKey, string> = {
+      CAN: 'Canada', USA: 'United States of America', GBR: 'United Kingdom', CHN: 'China', AUS: 'Australia'
+    }
+    const STATS_KEY = canonicalName[g]
+    const stats = COUNTRY_STATS[g] || COUNTRY_STATS[STATS_KEY] || { offices: 0, employees: 0 }
+    return { name: canonicalName[g], ...stats }
+  }, [selected])
+
+  // ----------------------------------------------------------
+  // SECTION: Hover fade state (reversible; same timing as selection)
+  // ----------------------------------------------------------
+  const hoveredGroup = useMemo(() => (hovered ? groupId(hovered) : null), [hovered])
+  const HOVER_DUR_MS = 1000
+  const [hoverAnimGroup, setHoverAnimGroup] = useState<GroupKey | null>(null)
+  const [hoverAnimT, setHoverAnimT] = useState(0)
+  const hoverRAF = useRef<number | null>(null)
+
+  useEffect(() => {
+    const toGroup = hoveredGroup
+    const fromT = hoverAnimT
+    const toT   = toGroup ? 1 : 0
+    if (toGroup && toGroup !== hoverAnimGroup) setHoverAnimGroup(toGroup)
+
+    const t0 = performance.now()
+    const start = fromT
+    const step = (now: number) => {
+      const p = Math.min(1, (now - t0) / HOVER_DUR_MS)
+      const e = easeCB(p)
+      setHoverAnimT(start + (toT - start) * e)
+      if (p < 1) hoverRAF.current = requestAnimationFrame(step)
+      else if (!toGroup) setHoverAnimGroup(null)
+    }
+    if (hoverRAF.current) cancelAnimationFrame(hoverRAF.current)
+    hoverRAF.current = requestAnimationFrame(step)
+    return () => { if (hoverRAF.current) cancelAnimationFrame(hoverRAF.current); hoverRAF.current = null }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hoveredGroup])
+
+  // ----------------------------------------------------------
+  // SECTION: Styling accessors (no altitude lift)
+  // ----------------------------------------------------------
+  const ALT_BASE = 0.005
+  const MID_GREY_VAL = 160
+  function greyToWhite(t: number) {
+    const v = Math.max(0, Math.min(255, Math.round(MID_GREY_VAL + (255 - MID_GREY_VAL) * t)))
+    return `rgba(${v},${v},${v},1)`
+  }
+  const polygonCapColor = (feat: any) => {
+    const gid = groupId(feat)
+    const selG = selected ? groupId(selected) : null
+    if (selG && gid && gid === selG) return greyToWhite(fadeT)
+    if (hoverAnimGroup && gid && gid === hoverAnimGroup) return greyToWhite(hoverAnimT)
+    return isSelectable(feat) ? COLOR_MID : COLOR_DARK
+  }
+  const polygonSideColor   = () => 'rgba(0,0,0,0)'
+  const polygonStrokeColor = () => 'rgba(255,255,255,0.15)'
+  const polygonAltitude    = () => ALT_BASE
+
+  // ----------------------------------------------------------
+  // SECTION: Render
+  // ----------------------------------------------------------
+  return (
+    <div className="globe-wrap">
+      {labelInfo && (
+        <div className="country-label">
+          <h2>{labelInfo.name}</h2>
+          <div className="country-metrics">
+            <div className="metric">
+              <div className="num">{labelInfo.offices}</div>
+              <div className="label">Offices</div>
+            </div>
+            <div className="metric">
+              <div className="num">{labelInfo.employees}</div>
+              <div className="label">Employees</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="globe-stage">
+        {!geoJson?.features && (
+          <div style={{ position: 'absolute', top: 12, left: 12, fontSize: 12, opacity: 0.7 }}>
+            Loading country polygons…
+          </div>
+        )}
+
+        <Globe
+          ref={globeRef}
+          width={undefined}
+          height={undefined}
+          backgroundColor="rgba(0,0,0,0)"
+          showAtmosphere={true}
+          atmosphereColor="#ffffff"
+          atmosphereAltitude={0.2}
+          globeMaterial={globeMat}
+          rendererConfig={{ antialias: true, alpha: true, logarithmicDepthBuffer: true }}
+
+          polygonsData={geoJson?.features || []}
+          polygonCapColor={polygonCapColor}
+          polygonSideColor={polygonSideColor}
+          polygonStrokeColor={polygonStrokeColor} 
+          polygonAltitude={polygonAltitude}
+          polygonsTransitionDuration={0}
+
+          onPolygonHover={(f: any) => setHovered(f && isSelectable(f) ? f : null)}
+          onPolygonClick={(feat: any) => {
+            if (!isSelectable(feat)) return
+            const [lng0, lat0] = sphericalCentroid(feat)
+            const lat = applyScreenLift(lat0)
+            animatePOV({ lat, lng: lng0, altitude: 1.9 }, 1000, easeInOut)
+            startEasedFade(500, 1000)
+            setSelected(feat)
+            setAutoRotate(globeRef, false)
+          }}
+
+          enablePointerInteraction={true}
+          polygonLabel={(f: any) =>
+            `ISO3: ${getFeatISO3(f) ?? ''}\nName: ${getFeatName(f) ?? ''}\nSelectable: ${isSelectable(f)}`
+          }
+        />
+      </div>
+    </div>
+  )
+}
+
+// ------------------------------------------------------------
+// SECTION: Geometry helpers
+// ------------------------------------------------------------
+function sphericalCentroid(feat: any): [number, number] {
+  const type = feat.geometry.type
+  const coords: any[] = type === 'Polygon' ? feat.geometry.coordinates : feat.geometry.coordinates.flat()
+  let x = 0, y = 0, z = 0, n = 0
+  for (const ring of coords as number[][][]) {
+    for (const p of ring as number[][]) {
+      const lng = (p[0] * Math.PI) / 180
+      const lat = (p[1] * Math.PI) / 180
+      const cl = Math.cos(lat)
+      x += cl * Math.cos(lng); y += cl * Math.sin(lng); z += Math.sin(lat); n++
+    }
+  }
+  if (!n) return [0, 0]
+  x /= n; y /= n; z /= n
+  const hyp = Math.hypot(x, y)
+  const lat = (Math.atan2(z, hyp) * 180) / Math.PI
+  let lng = (Math.atan2(y, x) * 180) / Math.PI
+  if (lng > 180) lng -= 360
+  if (lng < -180) lng += 360
+  return [lng, lat]
+}
+
+function setAutoRotate(globeRef: React.RefObject<any>, on: boolean) {
+  const g = globeRef.current; if (!g) return
+  const controls = g.controls(); controls.autoRotate = on
+}

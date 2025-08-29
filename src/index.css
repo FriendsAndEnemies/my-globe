@@ -1,0 +1,85 @@
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  background: #0a0a0a; /* deep grey/black */
+  color: #fff;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto,
+    'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji',
+    'Segoe UI Symbol';
+}
+
+/* Wrapper that masks the bottom ~40% of the globe */
+.globe-wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  /* show ~60% of height: clip bottom 40% */
+  clip-path: inset(0 0 40% 0);
+}
+
+/* big container so the globe fills the frame */
+.globe-stage {
+  position: absolute;
+  inset: 0;
+}
+
+/* floating label */
+.country-label {
+  position: absolute;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  pointer-events: none;
+}
+
+.country-label h2 {
+  margin: 0 0 6px;
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.9;
+}
+
+.country-metrics {
+  display: grid;
+  grid-auto-flow: column;
+  gap: 24px;
+  font-variant-numeric: tabular-nums;
+}
+
+.country-metrics .metric {
+  display: grid;
+  gap: 2px;
+  justify-items: center;
+}
+
+.country-metrics .metric .num {
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.country-metrics .metric .label {
+  font-size: 12px;
+  color: #bbb;
+}
+
+/* subtle rim/glow suggestion at the cropped edge (purely cosmetic) */
+.globe-wrap::after {
+  content: '';
+  position: absolute;
+  left: -5%;
+  right: -5%;
+  bottom: 0;
+  height: 64px;
+  background: radial-gradient(
+    120% 100% at 50% 0%,
+    rgba(255, 255, 255, 0.15),
+    rgba(255, 255, 255, 0) 70%
+  );
+  filter: blur(2px);
+  pointer-events: none;
+}
