@@ -1,32 +1,45 @@
-html,
-body,
-#root {
+/* ===== Global baseline ===== */
+:root, html, body, #root {
   height: 100%;
+}
+
+html, body {
   margin: 0;
   background: #0a0a0a; /* deep grey/black */
   color: #fff;
   font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto,
-    'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji',
-    'Segoe UI Symbol';
+    "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol";
 }
 
-/* Wrapper that masks the bottom ~40% of the globe */
+/* Use modern viewport units so iOS toolbars don't leave gaps */
+#root {
+  min-height: 100svh; /* also ok: 100dvh */
+}
+
+/* ===== Globe layout ===== */
 .globe-wrap {
-  position: relative;
-  width: 100%;
-  height: 100%;
+  position: fixed;   /* fill the whole window */
+  inset: 0;          /* top/right/bottom/left = 0 */
   overflow: hidden;
-  /* show ~60% of height: clip bottom 40% */
-  clip-path: inset(0 0 40% 0);
+  /* NOTE: removed the old clip-path that cropped 40% of the bottom */
 }
 
-/* big container so the globe fills the frame */
 .globe-stage {
   position: absolute;
   inset: 0;
+  overflow: hidden;  /* trims the glow nicely */
 }
 
-/* floating label */
+/* Make sure the WebGL canvas actually fills the stage */
+.globe-stage canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  transform: none !important; /* in case any translateY was left around */
+}
+
+/* ===== Overlay label ===== */
 .country-label {
   position: absolute;
   top: 24px;
@@ -67,19 +80,4 @@ body,
   color: #bbb;
 }
 
-/* subtle rim/glow suggestion at the cropped edge (purely cosmetic) */
-.globe-wrap::after {
-  content: '';
-  position: absolute;
-  left: -5%;
-  right: -5%;
-  bottom: 0;
-  height: 64px;
-  background: radial-gradient(
-    120% 100% at 50% 0%,
-    rgba(255, 255, 255, 0.15),
-    rgba(255, 255, 255, 0) 70%
-  );
-  filter: blur(2px);
-  pointer-events: none;
-}
+/* Removed the old .globe-wrap::after rim effect since we’re no longer cropping */
