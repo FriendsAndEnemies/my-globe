@@ -506,7 +506,7 @@ export default function App() {
             setAutoRotate(globeRef, false)
           }}
 
-          enablePointerInteraction={true}
+          enablePointerInteraction={false}
           polygonLabel={(f: any) =>
             `ISO3: ${getFeatISO3(f) ?? ''}\nName: ${getFeatName(f) ?? ''}\nSelectable: ${isSelectable(f)}`
           }
