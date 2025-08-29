@@ -1,11 +1,20 @@
-html, body, #root { height: 100%; margin: 0; }
-.globe-wrap { position: fixed; inset: 0; }
-.globe-stage { position: absolute; inset: 0; overflow: hidden; }
+html, body, #root { height: 100%; margin: 0; background: #000; }
 
-/* Nudge the canvas down so the sphere's bottom kisses the frame bottom */
-.globe-stage canvas { 
+.globe-wrap {
+  position: fixed;      /* fills the viewport */
+  inset: 0;
+}
+
+.globe-stage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;     /* crop the glow nicely */
+}
+
+/* IMPORTANT: no translateY here */
+.globe-stage canvas {
   display: block;
-  transform: translateY(6vh);   /* tweak 4–8vh to taste */
+  transform: none !important;
 }
 
 #root {
