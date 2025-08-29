@@ -338,6 +338,34 @@ export default function App() {
     globeRef.current?.pointOfView({ lat, lng: lng0, altitude: 2.1 }, 0)
   }, [])
 
+  // Fit globe vertically to 100vh: sets POV.altitude based on camera FOV
+useEffect(() => {
+  const g = globeRef.current; if (!g) return;
+
+  // how much extra radius to include (atmosphere/glow headroom)
+  const FIT_PAD_RADIUS = 1.04; // 4% extra so the glow isn't clipped
+
+  function fitAltitude() {
+    const cam = g.camera();
+    const fovRad = (cam.fov ?? 50) * Math.PI / 180;
+    // For three-globe, altitude is distance-from-center in globe radii.
+    // To make globe height fill the viewport: d = R_pad / sin(fov/2).
+    const altitude = FIT_PAD_RADIUS / Math.sin(fovRad / 2);
+
+    const cur = g.pointOfView();
+    g.pointOfView({ ...cur, altitude }, 0);
+  }
+
+  // initial fit + on resize
+  fitAltitude();
+  window.addEventListener('resize', fitAltitude);
+
+  // also refit after Vercel/Framer layout shifts (next frame)
+  requestAnimationFrame(fitAltitude);
+
+  return () => window.removeEventListener('resize', fitAltitude);
+}, []);
+
   // ----------------------------------------------------------
   // SECTION: Rim glows (inner limb only)
 // ----------------------------------------------------------
