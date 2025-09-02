@@ -263,6 +263,8 @@ export default function App() {
     const controls = globeRef.current.controls()
     controls.enableDamping = true
     controls.dampingFactor = 0.05
+    // Disable zoom in/out (wheel/pinch)
+    controls.enableZoom = false;
     controls.autoRotate = true
     controls.autoRotateSpeed = 0.25
 
