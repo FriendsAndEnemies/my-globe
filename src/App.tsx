@@ -279,11 +279,7 @@ export default function App() {
     }
   }, [])
 
-  // LIMIT vertical rotation so you can’t flip over the poles
-    const TILT_UP_DEG   = 35;  // how far above the equator you can tilt
-  const TILT_DOWN_DEG = 35;  // how far below the equator you can tilt
-  controls.minPolarAngle = THREE.MathUtils.degToRad(90 - TILT_UP_DEG);
-  controls.maxPolarAngle = THREE.MathUtils.degToRad(90 + TILT_DOWN_DEG);
+  
 
   // ----------------------------------------------------------
   // SECTION: POV “screen lift” (target below center so country sits higher)
