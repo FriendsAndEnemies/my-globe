@@ -18,26 +18,26 @@ html, body {
 }
 
 /* ===== Globe layout ===== */
-.globe-wrap {
-  position: fixed;   /* fill the whole window */
-  inset: 0;          /* top/right/bottom/left = 0 */
-  overflow: hidden;
-  /* NOTE: removed the old clip-path that cropped 40% of the bottom */
-}
+/* Fill the viewport */
+:root, html, body, #root { height: 100%; }
+#root { min-height: 100svh; }
+html, body { margin: 0; background:#0a0a0a; color:#fff; }
 
-.globe-stage {
-  position: absolute;
+/* The globe container fills the viewport */
+.globe-wrap{
+  position: fixed;      /* or absolute if you’re inside another layout */
   inset: 0;
-  overflow: hidden;  /* trims the glow nicely */
+  overflow: hidden;
+
+  /* Show the top ~66% (adjust this %) */
+  clip-path: inset(0 0 34% 0);
 }
 
-/* Make sure the WebGL canvas actually fills the stage */
-.globe-stage canvas {
-  display: block;
-  width: 100% !important;
-  height: 100% !important;
-  transform: none !important; /* in case any translateY was left around */
-}
+/* Keep the canvas filling its box */
+.globe-stage{ position:absolute; inset:0; overflow:hidden; }
+.globe-stage canvas{ display:block; width:100% !important; height:100% !important; }
+
+/* (your label styles can stay as-is) */
 
 /* ===== Overlay label ===== */
 .country-label {
