@@ -26,7 +26,7 @@ html, body {
   overflow: hidden;   /* crop anything outside the viewport */
 
   /* TUNING */
-  --reveal: 0;   /* % of the globe you want visible from the TOP (try 64–72) */
+  --reveal: 150;   /* % of the globe you want visible from the TOP (try 64–72) */
   --y-nudge: 0vh; /* small vertical offset: + pushes DOWN, - pulls UP */
 }
 
