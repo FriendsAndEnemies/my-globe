@@ -23,21 +23,31 @@ html, body {
 #root { min-height: 100svh; }
 html, body { margin: 0; background:#0a0a0a; color:#fff; }
 
-/* The globe container fills the viewport */
+/* ---- Globe viewport (exactly 100vh) ---- */
 .globe-wrap{
-  position: fixed;      /* or absolute if you’re inside another layout */
-  inset: 0;
-  overflow: hidden;
-
-  /* Show the top ~66% (adjust this %) */
-  clip-path: inset(0 0 34% 0);
+  position: fixed;           /* use absolute if this sits inside another layout */
+  inset: 0;                  /* full viewport */
+  height: 100vh;             /* hard viewport height */
+  overflow: hidden;          /* hide whatever we shift outside */
+  --reveal: 66;              /* % of globe visible (top portion) — tweak 60–72 */
 }
 
-/* Keep the canvas filling its box */
-.globe-stage{ position:absolute; inset:0; overflow:hidden; }
-.globe-stage canvas{ display:block; width:100% !important; height:100% !important; }
+/* We make the stage taller than the viewport and nudge it upward
+   so only the top --reveal% is visible. No clip-path needed. */
+.globe-stage{
+  position: absolute;
+  left: 0; right: 0;
+  height: 150vh;             /* extra headroom for a big sphere */
+  top: calc(-1 * (100vh - (100vh * var(--reveal) / 100)));
+  /* Example: reveal=66 → top ≈ -34vh, so the bottom 34% is out of view */
+}
 
-/* (your label styles can stay as-is) */
+/* Make sure the Globe’s canvas actually fills the stage box */
+.globe-stage canvas{
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
 
 /* ===== Overlay label ===== */
 .country-label {
