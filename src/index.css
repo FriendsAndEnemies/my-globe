@@ -18,31 +18,29 @@ html, body {
 }
 
 /* ===== Globe layout ===== */
-/* Fill the viewport */
-:root, html, body, #root { height: 100%; }
-#root { min-height: 100svh; }
-html, body { margin: 0; background:#0a0a0a; color:#fff; }
-
 /* ---- Globe viewport (exactly 100vh) ---- */
 .globe-wrap{
-  position: fixed;           /* use absolute if this sits inside another layout */
-  inset: 0;                  /* full viewport */
-  height: 100vh;             /* hard viewport height */
-  overflow: hidden;          /* hide whatever we shift outside */
-  --reveal: 66;              /* % of globe visible (top portion) — tweak 60–72 */
+  position: fixed;           /* full-viewport block inside the iframe */
+  inset: 0;
+  height: 100vh;
+  overflow: hidden;
+
+  /* TUNING */
+  --reveal: 78;    /* % of globe visible (top portion). Try 72–82 */
+  --y-nudge: 2vh;  /* small extra push down (+) or up (-). Try 0–4vh */
 }
 
-/* We make the stage taller than the viewport and nudge it upward
-   so only the top --reveal% is visible. No clip-path needed. */
+/* Taller stage that we slide upward so only the top --reveal% shows.
+   We also add --y-nudge so you can micro-adjust without touching reveal. */
 .globe-stage{
   position: absolute;
   left: 0; right: 0;
-  height: 150vh;             /* extra headroom for a big sphere */
-  top: calc(-1 * (100vh - (100vh * var(--reveal) / 100)));
-  /* Example: reveal=66 → top ≈ -34vh, so the bottom 34% is out of view */
+  height: 150vh; /* headroom for a large sphere; 140–160vh is fine */
+  top: calc(var(--y-nudge) - (100vh - (100vh * var(--reveal) / 100)));
+  /* Example: --reveal=78 → base shift ≈ -22vh, then + --y-nudge (2vh) = -20vh */
 }
 
-/* Make sure the Globe’s canvas actually fills the stage box */
+/* Ensure the Globe canvas fills the stage */
 .globe-stage canvas{
   display: block;
   width: 100% !important;
