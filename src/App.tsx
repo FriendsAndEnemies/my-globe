@@ -32,7 +32,7 @@ const GROUPS: Record<
       'Northern Ireland'
     ]
   },
-  CHN: { iso3: ['CHN'], names: ['China', 'People’s Republic of China', 'Peoples Republic of China'] },
+  CHN: { iso3: ['CHN'], names: ['China', 'People's Republic of China', 'Peoples Republic of China'] },
   AUS: { iso3: ['AUS'], names: ['Australia'] }
 }
 
@@ -107,7 +107,6 @@ const COUNTRY_STATS: Record<string, { offices: number; employees: number }> = {
 const COLOR_DARK = 'rgba(45,45,45,1)'         // non-selectable
 const COLOR_MID  = 'rgba(160,160,160,1)'      // selectable idle
 
-
 // Flat globe material (no lighting / no hotspot)
 const useFlatGlobeMaterial = () =>
   new THREE.MeshBasicMaterial({ color: 0x0b0b0b }) // tweak base globe tone here
@@ -174,10 +173,30 @@ void main() {
 `
 
 // ------------------------------------------------------------
+// SECTION: URL Parameters Hook
+// ------------------------------------------------------------
+function useUrlParams() {
+  const [params, setParams] = useState<URLSearchParams>(new URLSearchParams())
+  
+  useEffect(() => {
+    const updateParams = () => {
+      setParams(new URLSearchParams(window.location.search))
+    }
+    
+    updateParams()
+    window.addEventListener('popstate', updateParams)
+    return () => window.removeEventListener('popstate', updateParams)
+  }, [])
+  
+  return params
+}
+
+// ------------------------------------------------------------
 // SECTION: Component
 // ------------------------------------------------------------
 export default function App() {
   const globeRef = useRef<any>(null)
+  const urlParams = useUrlParams()
 
   const [geoJson, setGeoJson]   = useState<any>(null)
   const [hovered, setHovered]   = useState<any>(null)
@@ -256,15 +275,24 @@ export default function App() {
   }, [])
 
   // ----------------------------------------------------------
-  // SECTION: Controls (autorotate + damping)
+  // SECTION: Controls (autorotate + damping + zoom disabled + polar limits)
   // ----------------------------------------------------------
   useEffect(() => {
     if (!globeRef.current) return
     const controls = globeRef.current.controls()
+    
+    // Basic settings
     controls.enableDamping = true
     controls.dampingFactor = 0.05
-    // Disable zoom in/out (wheel/pinch)
-    controls.enableZoom = false;
+    
+    // DISABLE ZOOM (wheel + pinch)
+    controls.enableZoom = false
+    
+    // LIMIT VERTICAL ROTATION (prevent flipping over poles)
+    controls.minPolarAngle = THREE.MathUtils.degToRad(35)   // can't tilt too far down
+    controls.maxPolarAngle = THREE.MathUtils.degToRad(145) // can't tilt too far up
+    
+    // Auto-rotate settings
     controls.autoRotate = true
     controls.autoRotateSpeed = 0.25
 
@@ -279,10 +307,34 @@ export default function App() {
     }
   }, [])
 
-  
+  // ----------------------------------------------------------
+  // SECTION: URL Parameter Focus (e.g., ?focus=CAN)
+  // ----------------------------------------------------------
+  useEffect(() => {
+    if (!geoJson?.features || !globeRef.current) return
+    
+    const focusParam = urlParams.get('focus')?.toUpperCase() as GroupKey | null
+    if (!focusParam || !GROUPS[focusParam]) return
+    
+    // Find the feature for this group
+    const targetFeature = geoJson.features.find((f: any) => groupId(f) === focusParam)
+    if (!targetFeature) return
+    
+    // Focus on this country
+    const [lng0, lat0] = sphericalCentroid(targetFeature)
+    const lat = applyScreenLift(lat0)
+    
+    // Animate to the country with a delay to ensure globe is ready
+    setTimeout(() => {
+      animatePOV({ lat, lng: lng0, altitude: 1.9 }, 1500, easeInOut)
+      startEasedFade(800, 1000)
+      setSelected(targetFeature)
+      setAutoRotate(globeRef, false)
+    }, 1000)
+  }, [geoJson, urlParams])
 
   // ----------------------------------------------------------
-  // SECTION: POV “screen lift” (target below center so country sits higher)
+  // SECTION: POV "screen lift" (target below center so country sits higher)
   // ----------------------------------------------------------
   const SCREEN_LIFT_DEG = 12
   function applyScreenLift(lat: number, liftDeg = SCREEN_LIFT_DEG) {
@@ -292,7 +344,7 @@ export default function App() {
 
   // ----------------------------------------------------------
   // SECTION: POV animation (cubic-bezier)
-// ----------------------------------------------------------
+  // ----------------------------------------------------------
   function animatePOV(
     to: { lat: number; lng: number; altitude: number },
     ms = 1000,
@@ -319,7 +371,7 @@ export default function App() {
 
   // ----------------------------------------------------------
   // SECTION: Selection fade (delay 500ms; duration 1000ms)
-// ----------------------------------------------------------
+  // ----------------------------------------------------------
   function startEasedFade(delayMs = 500, durMs = 1000) {
     if (fadeRAF.current) cancelAnimationFrame(fadeRAF.current)
     const t0 = performance.now() + delayMs
@@ -344,7 +396,7 @@ export default function App() {
 
   // ----------------------------------------------------------
   // SECTION: Rim glows (inner limb only)
-// ----------------------------------------------------------
+  // ----------------------------------------------------------
   useEffect(() => {
     const globe = globeRef.current
     if (!globe) return
@@ -389,19 +441,31 @@ export default function App() {
   }, [])
 
   // ----------------------------------------------------------
-  // SECTION: Label from selected group
+  // SECTION: Label from selected group (with URL param support)
   // ----------------------------------------------------------
   const labelInfo = useMemo(() => {
     if (!selected) return null
     const g = groupId(selected) as GroupKey | null
     if (!g) return null
+    
     const canonicalName: Record<GroupKey, string> = {
       CAN: 'Canada', USA: 'United States of America', GBR: 'United Kingdom', CHN: 'China', AUS: 'Australia'
     }
     const STATS_KEY = canonicalName[g]
-    const stats = COUNTRY_STATS[g] || COUNTRY_STATS[STATS_KEY] || { offices: 0, employees: 0 }
+    
+    // Check for URL parameter overrides
+    const officesParam = urlParams.get('offices')
+    const employeesParam = urlParams.get('employees')
+    
+    const defaultStats = COUNTRY_STATS[g] || COUNTRY_STATS[STATS_KEY] || { offices: 0, employees: 0 }
+    
+    const stats = {
+      offices: officesParam ? parseInt(officesParam, 10) || 0 : defaultStats.offices,
+      employees: employeesParam ? parseInt(employeesParam, 10) || 0 : defaultStats.employees
+    }
+    
     return { name: canonicalName[g], ...stats }
-  }, [selected])
+  }, [selected, urlParams])
 
   // ----------------------------------------------------------
   // SECTION: Hover fade state (reversible; same timing as selection)
@@ -457,7 +521,7 @@ export default function App() {
   // SECTION: Render
   // ----------------------------------------------------------
   return (
-    <div className="globe-wrap">
+    <div id="globeRoot">
       {labelInfo && (
         <div className="country-label">
           <h2>{labelInfo.name}</h2>
@@ -474,7 +538,7 @@ export default function App() {
         </div>
       )}
 
-      <div className="globe-stage">
+      <div className="globeStage">
         {!geoJson?.features && (
           <div style={{ position: 'absolute', top: 12, left: 12, fontSize: 12, opacity: 0.7 }}>
             Loading country polygons…
@@ -511,9 +575,6 @@ export default function App() {
           }}
 
           enablePointerInteraction={true}
-          // polygonLabel={(f: any) =>
-          //  `ISO3: ${getFeatISO3(f) ?? ''}\nName: ${getFeatName(f) ?? ''}\nSelectable: ${isSelectable(f)}`
-          //}
         />
       </div>
     </div>
