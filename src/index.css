@@ -1,56 +1,36 @@
-/* ===== Global baseline ===== */
-:root, html, body, #root {
+/* ===== Baseline ===== */
+html, body, #root {
   height: 100%;
-}
-
-html, body {
   margin: 0;
-  background: #0a0a0a; /* deep grey/black */
+  background: #0a0a0a;
   color: #fff;
   font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto,
-    "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji",
-    "Segoe UI Symbol";
+    "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol";
 }
 
-/* Use modern viewport units so iOS toolbars don't leave gaps */
-#root {
-  min-height: 100svh; /* also ok: 100dvh */
+/* ===== Globe layout (centered, fills viewport) ===== */
+.globe-wrap {
+  position: relative;      /* back in normal flow */
+  width: 100%;
+  height: 100vh;           /* fill the viewport */
+  overflow: hidden;        /* clip glow nicely at edges */
 }
 
-/* ===== Globe layout ===== */
-/* ---- Globe viewport (exactly 100vh) ---- */
-.globe-wrap{
-  position: fixed;    /* full viewport */
-  inset: 0;
-  height: 100vh;
-  overflow: hidden;   /* crop anything outside the viewport */
-
-  /* TUNING */
-  --reveal: 150;   /* % of the globe you want visible from the TOP (try 64–72) */
-  --y-nudge: 0vh; /* small vertical offset: + pushes DOWN, - pulls UP */
-}
-
-/* Make the stage taller, then slide it UP so the bottom part is cropped.
-   This shows only the top --reveal% of the globe (i.e., it “peeks up”
-   and the lower ~1/3 is hidden below the fold). */
-.globe-stage{
+.globe-stage {
   position: absolute;
-  left: 0; right: 0;
-  height: 150vh;
-  top: calc(
-    -1 * (100vh * (100 - var(--reveal)) / 100)  /* move up to crop the bottom */
-    + var(--y-nudge)                            /* fine adjustment */
-  );
+  inset: 0;                /* let react-globe fill this box */
+  /* no height:150vh, no top:calc(...) */
 }
 
-/* Ensure the Globe canvas fills the stage */
-.globe-stage canvas{
+.globe-stage canvas {
   display: block;
   width: 100% !important;
   height: 100% !important;
+  transform: none !important; /* in case a previous rule lingered */
 }
 
-/* ===== Overlay label ===== */
+/* ===== Label ===== */
 .country-label {
   position: absolute;
   top: 24px;
@@ -59,36 +39,8 @@ html, body {
   text-align: center;
   pointer-events: none;
 }
-
-.country-label h2 {
-  margin: 0 0 6px;
-  font-size: 14px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  opacity: 0.9;
-}
-
-.country-metrics {
-  display: grid;
-  grid-auto-flow: column;
-  gap: 24px;
-  font-variant-numeric: tabular-nums;
-}
-
-.country-metrics .metric {
-  display: grid;
-  gap: 2px;
-  justify-items: center;
-}
-
-.country-metrics .metric .num {
-  font-size: 28px;
-  font-weight: 600;
-}
-
-.country-metrics .metric .label {
-  font-size: 12px;
-  color: #bbb;
-}
-
-/* Removed the old .globe-wrap::after rim effect since we’re no longer cropping */
+.country-label h2 { margin: 0 0 6px; font-size: 14px; letter-spacing: .08em; text-transform: uppercase; opacity: .9; }
+.country-metrics { display: grid; grid-auto-flow: column; gap: 24px; font-variant-numeric: tabular-nums; }
+.country-metrics .metric { display: grid; gap: 2px; justify-items: center; }
+.country-metrics .metric .num { font-size: 28px; font-weight: 600; }
+.country-metrics .metric .label { font-size: 12px; color: #bbb; }
