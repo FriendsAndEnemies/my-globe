@@ -34,7 +34,7 @@ html, body {
   position: relative;
   /* Fixed aspect ratio - globe is always square based on width */
   width: 100%;
-  aspect-ratio: 1 / 1; /* Perfect square */
+  aspect-ratio: 16 / 9; /* Perfect square */
   /* Scale up to show more globe area */
   transform: scale(1.5) translateY(17%);
   transform-origin: center top;
