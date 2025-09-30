@@ -35,7 +35,7 @@ html, body {
   position: absolute;
   inset: 0;
   /* Make globe larger and push down to crop bottom */
-  width: 100%;
+  width: 160%;
   height: 150%;
   top: 25%;
   left: 0;
