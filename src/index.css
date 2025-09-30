@@ -14,29 +14,28 @@ html, body {
 
 /* Use modern viewport units so iOS toolbars don't leave gaps */
 #root {
-  min-height: 100svh; /* also ok: 100dvh */
-  max-width: none;
-  padding: 0;
-  margin: 0;
-  text-align: unset;
+  width: 100%;
+  height: 100%;
+  min-height: 100vh; /* Fallback for standalone pages */
 }
 
 /* ===== Clean Globe Layout (centered, no offsets) ===== */
 #globeRoot {
   position: relative;
   width: 100%;
-  height: 100vh;
+  height: 100%;  /* Use 100% instead of vh for iframe compatibility */
   overflow: hidden;
-  /* Show only top portion of globe */
-  --globe-reveal: 65%; /* Adjust this value: 50% = show top half, 70% = show more */
 }
 
 #globeRoot .globeStage {
   position: absolute;
-  inset: 0;
+  /* Center the globe horizontally */
+  left: 50%;
+  transform: translateX(-50%);
   /* Make globe larger and push DOWN so bottom is cut off */
-  height: 150vh;
-  top: 25vh; /* Push DOWN (positive value) so bottom is below viewport */
+  width: 100%;
+  height: 150%;  /* Use % instead of vh */
+  top: 25%;      /* Use % instead of vh */
 }
 
 /* Ensure the canvas follows the container exactly */
