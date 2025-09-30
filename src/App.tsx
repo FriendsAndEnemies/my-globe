@@ -229,6 +229,7 @@ function useUrlParams() {
 // ------------------------------------------------------------
 export default function App() {
   const globeRef = useRef<any>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   const urlParams = useUrlParams()
 
   const [geoJson, setGeoJson] = useState<any>(null)
@@ -242,7 +243,42 @@ export default function App() {
   const [debugMode, setDebugMode] = useState(false)
   const [currentPOV, setCurrentPOV] = useState({ lat: 0, lng: 0, altitude: 0 })
 
+  // Track container dimensions
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
+
   const globeMat = useMemo(() => useFlatGlobeMaterial(), [])
+
+  // ----------------------------------------------------------
+  // SECTION: Resize Observer - Force Globe to Fill Container
+  // ----------------------------------------------------------
+  useEffect(() => {
+    const updateDimensions = () => {
+      if (containerRef.current) {
+        const { clientWidth, clientHeight } = containerRef.current
+        setDimensions({ width: clientWidth, height: clientHeight })
+        
+        // Force globe to resize
+        if (globeRef.current) {
+          globeRef.current.width(clientWidth)
+          globeRef.current.height(clientHeight)
+        }
+      }
+    }
+
+    updateDimensions()
+    
+    const resizeObserver = new ResizeObserver(updateDimensions)
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current)
+    }
+
+    window.addEventListener('resize', updateDimensions)
+    
+    return () => {
+      resizeObserver.disconnect()
+      window.removeEventListener('resize', updateDimensions)
+    }
+  }, [])
 
   // ----------------------------------------------------------
   // SECTION: Data fetch
@@ -633,8 +669,11 @@ export default function App() {
           <div style={{ marginBottom: '4px' }}>
             lng: {currentPOV.lng.toFixed(4)}
           </div>
-          <div style={{ marginBottom: '12px' }}>
+          <div style={{ marginBottom: '4px' }}>
             altitude: {currentPOV.altitude.toFixed(4)}
+          </div>
+          <div style={{ marginBottom: '12px', color: '#ff0' }}>
+            dimensions: {dimensions.width}x{dimensions.height}
           </div>
           <button
             onClick={() => {
@@ -679,7 +718,7 @@ export default function App() {
         </div>
       )}
 
-      <div className="globeStage">
+      <div className="globeStage" ref={containerRef}>
         {!geoJson?.features && (
           <div style={{ position: 'absolute', top: 12, left: 12, fontSize: 12, opacity: 0.7, pointerEvents: 'none' }}>
             Loading country polygons…
@@ -688,6 +727,8 @@ export default function App() {
 
         <Globe
           ref={globeRef}
+          width={dimensions.width}
+          height={dimensions.height}
           backgroundColor="rgba(0,0,0,0)"
           showAtmosphere={true}
           atmosphereColor="#ffffff"
