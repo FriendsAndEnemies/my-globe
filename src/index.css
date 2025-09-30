@@ -1,65 +1,52 @@
 /* ===== Global baseline ===== */
 :root, html, body, #root {
-  width: 100%;
   height: 100%;
-  margin: 0;
-  padding: 0;
 }
 
 html, body {
-  background: #000000; /* pure black */
+  margin: 0;
+  background: #0a0a0a; /* deep grey/black */
   color: #fff;
   font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto,
     "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji",
     "Segoe UI Symbol";
-  overflow: hidden;
 }
 
+/* Use modern viewport units so iOS toolbars don't leave gaps */
 #root {
-  max-width: none;
-  text-align: unset;
+  width: 100%;
+  height: 100%;
+  /* min-height: 100vh; allback for standalone pages */
 }
 
-/* ===== Globe Layout (fills container, scaled for size) ===== */
+/* ===== Clean Globe Layout (centered, fixed aspect ratio) ===== */
 #globeRoot {
-  position: absolute;
-  inset: 0;
+  position: relative;
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: #000000; /* pure black space */
-  pointer-events: none;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
 }
 
 #globeRoot .globeStage {
   position: relative;
+  /* Fixed aspect ratio - globe is always square based on width */
   width: 100%;
-  max-width: 100%;
-  aspect-ratio: 16 / 9;
-  transform: scale(1.6);
-  transform-origin: center center;
-  pointer-events: auto;
+  aspect-ratio: 16 / 9; /* Perfect square */
+  /* Scale up to show more globe area */
+  transform: scale(1.5) translateY(17%);
+  transform-origin: center top;
 }
 
-/* Inner wrapper to control globe size and crop */
-#globeRoot .globeStage > div {
-  position: absolute;
-  width: 100%;
-  height: 180%;
-  top: -40%;
-  left: 0;
-}
-
-/* Ensure the canvas scales properly */
+/* Ensure the canvas is also centered within the stage */
 #globeRoot .globeStage canvas {
   display: block;
   width: 100% !important;
   height: 100% !important;
-  pointer-events: auto !important;
-  touch-action: none;
+  transform: none !important;
+  margin: 0 auto;
 }
 
 /* ===== Country Label Overlay ===== */
