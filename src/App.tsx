@@ -116,6 +116,17 @@ const COUNTRY_STATS: Record<string, { offices: number; employees: number }> = {
 }
 
 // ------------------------------------------------------------
+// SECTION: Custom Camera Views (user-defined optimal angles)
+// ------------------------------------------------------------
+const CUSTOM_VIEWS: Record<GroupKey, { lat: number; lng: number; altitude: number }> = {
+  CAN: { lat: 40.61, lng: -98.85, altitude: 2.10 },
+  USA: { lat: 27.00, lng: -95.21, altitude: 2.10 },
+  GBR: { lat: 32.66, lng: -1.34, altitude: 2.10 },
+  CHN: { lat: 20.23, lng: 105.72, altitude: 2.10 },
+  AUS: { lat: -47.68, lng: 136.88, altitude: 2.10 }
+}
+
+// ------------------------------------------------------------
 // SECTION: Colors
 // ------------------------------------------------------------
 const COLOR_DARK = 'rgba(45,45,45,1)'
@@ -696,9 +707,18 @@ export default function App() {
           onPolygonHover={(f: any) => setHovered(f && isSelectable(f) ? f : null)}
           onPolygonClick={(feat: any) => {
             if (!isSelectable(feat)) return
-            const [lng0, lat0] = sphericalCentroid(feat)
-            const lat = applyScreenLift(lat0)
-            animatePOV({ lat, lng: lng0, altitude: 1.9 }, 1000, easeInOut)
+            const gid = groupId(feat) as GroupKey | null
+            
+            // Use custom view if available, otherwise calculate centroid
+            if (gid && CUSTOM_VIEWS[gid]) {
+              const customView = CUSTOM_VIEWS[gid]
+              animatePOV(customView, 1000, easeInOut)
+            } else {
+              const [lng0, lat0] = sphericalCentroid(feat)
+              const lat = applyScreenLift(lat0)
+              animatePOV({ lat, lng: lng0, altitude: 1.9 }, 1000, easeInOut)
+            }
+            
             startEasedFade(500, 1000)
             setSelected(feat)
             setAutoRotate(globeRef, false)
