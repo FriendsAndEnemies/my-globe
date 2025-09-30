@@ -146,6 +146,7 @@ export default function App() {
   const [debugMode, setDebugMode] = useState(false)
   const [currentPOV, setCurrentPOV] = useState({ lat: 0, lng: 0, altitude: 0 })
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
+  const [altitudeOverride, setAltitudeOverride] = useState(1.8)
   const globeMat = useMemo(() => useFlatGlobeMaterial(), [])
 
   useEffect(() => {
@@ -426,9 +427,32 @@ export default function App() {
           <div style={{ marginBottom: '4px' }}>lng: {currentPOV.lng.toFixed(4)}</div>
           <div style={{ marginBottom: '4px' }}>altitude: {currentPOV.altitude.toFixed(4)}</div>
           <div style={{ marginBottom: '12px', color: '#ff0' }}>dimensions: {dimensions.width}x{dimensions.height}</div>
+          
+          <div style={{ marginBottom: '12px', paddingTop: '12px', borderTop: '1px solid #0f0' }}>
+            <label style={{ display: 'block', marginBottom: '8px', color: '#fff' }}>
+              Altitude Override: {altitudeOverride.toFixed(2)}
+            </label>
+            <input 
+              type="range" 
+              min="0.5" 
+              max="4.0" 
+              step="0.1" 
+              value={altitudeOverride}
+              onChange={(e) => {
+                const newAlt = parseFloat(e.target.value)
+                setAltitudeOverride(newAlt)
+                if (globeRef.current) {
+                  const pov = globeRef.current.pointOfView()
+                  globeRef.current.pointOfView({ ...pov, altitude: newAlt })
+                }
+              }}
+              style={{ width: '100%' }}
+            />
+          </div>
+          
           <button onClick={() => { const code = `{ lat: ${currentPOV.lat.toFixed(2)}, lng: ${currentPOV.lng.toFixed(2)}, altitude: ${currentPOV.altitude.toFixed(2)} }`; navigator.clipboard.writeText(code); alert('Coordinates copied to clipboard!') }} style={{ background: '#0f0', color: '#000', border: 'none', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold', width: '100%' }}>📋 Copy Coordinates</button>
           {selected && (<div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #0f0', color: '#ff0' }}><strong>Selected:</strong> {groupId(selected) || 'Unknown'}</div>)}
-          <div style={{ marginTop: '12px', fontSize: '11px', color: '#888', lineHeight: '1.4' }}>• Drag to rotate<br/>• Click country to select<br/>• Adjust view, then copy coords</div>
+          <div style={{ marginTop: '12px', fontSize: '11px', color: '#888', lineHeight: '1.4' }}>• Drag to rotate<br/>• Click country to select<br/>• Use slider to test altitude<br/>• Lower = closer/bigger</div>
         </div>
       )}
       <div className="globeStage" ref={containerRef}>
