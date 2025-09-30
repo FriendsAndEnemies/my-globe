@@ -227,6 +227,10 @@ export default function App() {
   const [fadeT, setFadeT] = useState(0)
   const fadeRAF = useRef<number | null>(null)
 
+  // Debug mode state
+  const [debugMode, setDebugMode] = useState(false)
+  const [currentPOV, setCurrentPOV] = useState({ lat: 0, lng: 0, altitude: 0 })
+
   const globeMat = useMemo(() => useFlatGlobeMaterial(), [])
 
   // ----------------------------------------------------------
@@ -320,6 +324,33 @@ export default function App() {
       controls.removeEventListener('end', resume)
     }
   }, [])
+
+  // ----------------------------------------------------------
+  // SECTION: Debug Mode - Keyboard Controls & POV Tracking
+  // ----------------------------------------------------------
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      // Press 'D' to toggle debug mode
+      if (e.key === 'd' || e.key === 'D') {
+        setDebugMode(prev => !prev)
+      }
+    }
+    
+    window.addEventListener('keydown', handleKeyPress)
+    return () => window.removeEventListener('keydown', handleKeyPress)
+  }, [])
+
+  // Update POV display in debug mode
+  useEffect(() => {
+    if (!debugMode || !globeRef.current) return
+    
+    const interval = setInterval(() => {
+      const pov = globeRef.current.pointOfView()
+      setCurrentPOV(pov)
+    }, 100)
+    
+    return () => clearInterval(interval)
+  }, [debugMode])
 
   // ----------------------------------------------------------
   // SECTION: URL Parameter Focus
@@ -559,6 +590,80 @@ export default function App() {
               <div className="num">{labelInfo.employees}</div>
               <div className="label">Employees</div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Debug Overlay */}
+      {debugMode && (
+        <div style={{
+          position: 'absolute',
+          top: '10px',
+          right: '10px',
+          background: 'rgba(0, 0, 0, 0.85)',
+          color: '#0f0',
+          padding: '16px',
+          borderRadius: '8px',
+          fontFamily: 'monospace',
+          fontSize: '12px',
+          zIndex: 1000,
+          minWidth: '300px',
+          border: '1px solid #0f0'
+        }}>
+          <div style={{ marginBottom: '12px', fontSize: '14px', fontWeight: 'bold', color: '#fff' }}>
+            🎯 DEBUG MODE (Press D to toggle)
+          </div>
+          <div style={{ marginBottom: '8px' }}>
+            <strong>Current POV:</strong>
+          </div>
+          <div style={{ marginBottom: '4px' }}>
+            lat: {currentPOV.lat.toFixed(4)}
+          </div>
+          <div style={{ marginBottom: '4px' }}>
+            lng: {currentPOV.lng.toFixed(4)}
+          </div>
+          <div style={{ marginBottom: '12px' }}>
+            altitude: {currentPOV.altitude.toFixed(4)}
+          </div>
+          <button
+            onClick={() => {
+              const code = `{ lat: ${currentPOV.lat.toFixed(2)}, lng: ${currentPOV.lng.toFixed(2)}, altitude: ${currentPOV.altitude.toFixed(2)} }`
+              navigator.clipboard.writeText(code)
+              alert('Coordinates copied to clipboard!')
+            }}
+            style={{
+              background: '#0f0',
+              color: '#000',
+              border: 'none',
+              padding: '8px 12px',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '12px',
+              fontWeight: 'bold',
+              width: '100%'
+            }}
+          >
+            📋 Copy Coordinates
+          </button>
+          {selected && (
+            <div style={{ 
+              marginTop: '12px', 
+              paddingTop: '12px', 
+              borderTop: '1px solid #0f0',
+              color: '#ff0'
+            }}>
+              <strong>Selected:</strong> {groupId(selected) || 'Unknown'}
+            </div>
+          )}
+          <div style={{ 
+            marginTop: '12px', 
+            fontSize: '11px', 
+            color: '#888',
+            lineHeight: '1.4'
+          }}>
+            • Drag to rotate<br/>
+            • Click country to select<br/>
+            • Adjust view, then copy coords
           </div>
         </div>
       )}
