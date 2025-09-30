@@ -19,23 +19,25 @@ html, body {
   min-height: 100vh; /* Fallback for standalone pages */
 }
 
-/* ===== Clean Globe Layout (centered, no offsets) ===== */
+/* ===== Clean Globe Layout (centered, fixed aspect ratio) ===== */
 #globeRoot {
   position: relative;
   width: 100%;
-  height: 100%;  /* Use 100% instead of vh for iframe compatibility */
+  height: 100%;
   overflow: hidden;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
 }
 
 #globeRoot .globeStage {
-  position: absolute;
-  /* Make globe larger and push DOWN so bottom is cut off */
-  width: 150%;  /* Make wider to ensure coverage */
-  height: 150%;
-  /* Center horizontally and position vertically */
-  left: 50%;
-  top: 25%;
-  transform: translateX(-50%); /* Center the entire stage */
+  position: relative;
+  /* Fixed aspect ratio - globe is always square based on width */
+  width: 100%;
+  aspect-ratio: 1 / 1; /* Perfect square */
+  /* Scale up to show more globe area */
+  transform: scale(1.5) translateY(17%);
+  transform-origin: center top;
 }
 
 /* Ensure the canvas is also centered within the stage */
