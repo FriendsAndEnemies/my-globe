@@ -13,12 +13,15 @@ import { presimplify, simplify } from 'topojson-simplify'
 // ------------------------------------------------------------
 type GroupKey = 'CAN' | 'USA' | 'GBR' | 'CHN' | 'AUS'
 
-const GROUPS: Record<
-  GroupKey,
-  { iso3: string[]; names: string[] }
-> = {
-  CAN: { iso3: ['CAN'], names: ['Canada'] },
-  USA: { iso3: ['USA'], names: ['United States of America', 'United States', 'USA'] },
+const GROUPS: Record<GroupKey, { iso3: string[]; names: string[] }> = {
+  CAN: { 
+    iso3: ['CAN'], 
+    names: ['Canada'] 
+  },
+  USA: { 
+    iso3: ['USA'], 
+    names: ['United States of America', 'United States', 'USA'] 
+  },
   GBR: {
     iso3: ['GBR'],
     names: [
@@ -32,8 +35,14 @@ const GROUPS: Record<
       'Northern Ireland'
     ]
   },
-  CHN: { iso3: ['CHN'], names: ['China', 'People's Republic of China', 'Peoples Republic of China'] },
-  AUS: { iso3: ['AUS'], names: ['Australia'] }
+  CHN: { 
+    iso3: ['CHN'], 
+    names: ['China', 'People\'s Republic of China', 'Peoples Republic of China'] 
+  },
+  AUS: { 
+    iso3: ['AUS'], 
+    names: ['Australia'] 
+  }
 }
 
 function norm(s?: string) {
@@ -94,44 +103,58 @@ function isSelectable(f: any) { return groupId(f) !== null }
 // SECTION: Stats (match by ISO3 or name)
 // ------------------------------------------------------------
 const COUNTRY_STATS: Record<string, { offices: number; employees: number }> = {
-  CAN: { offices: 6, employees: 562 }, Canada: { offices: 6, employees: 562 },
-  USA: { offices: 14, employees: 3280 }, 'United States of America': { offices: 14, employees: 3280 },
-  GBR: { offices: 3, employees: 420 }, 'United Kingdom': { offices: 3, employees: 420 },
-  CHN: { offices: 8, employees: 1900 }, China: { offices: 8, employees: 1900 },
-  AUS: { offices: 4, employees: 510 }, Australia: { offices: 4, employees: 510 }
+  CAN: { offices: 6, employees: 562 }, 
+  Canada: { offices: 6, employees: 562 },
+  USA: { offices: 14, employees: 3280 }, 
+  'United States of America': { offices: 14, employees: 3280 },
+  GBR: { offices: 3, employees: 420 }, 
+  'United Kingdom': { offices: 3, employees: 420 },
+  CHN: { offices: 8, employees: 1900 }, 
+  China: { offices: 8, employees: 1900 },
+  AUS: { offices: 4, employees: 510 }, 
+  Australia: { offices: 4, employees: 510 }
 }
 
 // ------------------------------------------------------------
 // SECTION: Colors
 // ------------------------------------------------------------
-const COLOR_DARK = 'rgba(45,45,45,1)'         // non-selectable
-const COLOR_MID  = 'rgba(160,160,160,1)'      // selectable idle
+const COLOR_DARK = 'rgba(45,45,45,1)'
+const COLOR_MID  = 'rgba(160,160,160,1)'
 
 // Flat globe material (no lighting / no hotspot)
 const useFlatGlobeMaterial = () =>
-  new THREE.MeshBasicMaterial({ color: 0x0b0b0b }) // tweak base globe tone here
+  new THREE.MeshBasicMaterial({ color: 0x0b0b0b })
 
 // ------------------------------------------------------------
 // SECTION: Easing (cubic-bezier)
 // ------------------------------------------------------------
 function cubicBezier(x1: number, y1: number, x2: number, y2: number) {
-  const NEWTON_ITER = 8, NEWTON_EPS = 1e-6, SUBDIV_EPS = 1e-7
-  const ax = 3 * x1 - 3 * x2 + 1, bx = -6 * x1 + 3 * x2, cx = 3 * x1
-  const ay = 3 * y1 - 3 * y2 + 1, by = -6 * y1 + 3 * y2, cy = 3 * y1
+  const NEWTON_ITER = 8
+  const NEWTON_EPS = 1e-6
+  const SUBDIV_EPS = 1e-7
+  const ax = 3 * x1 - 3 * x2 + 1
+  const bx = -6 * x1 + 3 * x2
+  const cx = 3 * x1
+  const ay = 3 * y1 - 3 * y2 + 1
+  const by = -6 * y1 + 3 * y2
+  const cy = 3 * y1
   const sampleX = (t: number) => ((ax * t + bx) * t + cx) * t
   const sampleY = (t: number) => ((ay * t + by) * t + cy) * t
   const slopeX  = (t: number) => (3 * ax * t + 2 * bx) * t + cx
   function solveX(x: number) {
     let t = x
     for (let i = 0; i < NEWTON_ITER; i++) {
-      const s = slopeX(t); if (Math.abs(s) < NEWTON_EPS) break
+      const s = slopeX(t)
+      if (Math.abs(s) < NEWTON_EPS) break
       t -= (sampleX(t) - x) / s
     }
-    let t0 = 0, t1 = 1
+    let t0 = 0
+    let t1 = 1
     while (t0 < t1) {
       const xEst = sampleX(t)
       if (Math.abs(xEst - x) < SUBDIV_EPS) return t
-      if (x > xEst) t0 = t; else t1 = t
+      if (x > xEst) t0 = t
+      else t1 = t
       t = (t0 + t1) / 2
       if (t1 - t0 < SUBDIV_EPS) break
     }
@@ -145,9 +168,8 @@ const easeInOut = cubicBezier(0.42, 0.00, 0.58, 1.00)
 // ------------------------------------------------------------
 // SECTION: Rim-glow shaders (Fresnel)
 // ------------------------------------------------------------
-// Fresnel tuned for limb-only glow. Center stays dark.
 const RIM_VS = `
-uniform float p;           // falloff power
+uniform float p;
 varying float vIntensity;
 
 void main() {
@@ -162,7 +184,7 @@ void main() {
 
 const RIM_FS = `
 uniform vec3  glowColor;
-uniform float strength;    // 0..1 overall intensity
+uniform float strength;
 varying float vIntensity;
 
 void main() {
@@ -198,24 +220,22 @@ export default function App() {
   const globeRef = useRef<any>(null)
   const urlParams = useUrlParams()
 
-  const [geoJson, setGeoJson]   = useState<any>(null)
-  const [hovered, setHovered]   = useState<any>(null)
+  const [geoJson, setGeoJson] = useState<any>(null)
+  const [hovered, setHovered] = useState<any>(null)
   const [selected, setSelected] = useState<any>(null)
 
   const [fadeT, setFadeT] = useState(0)
   const fadeRAF = useRef<number | null>(null)
 
-  // flat globe material (no lighting)
   const globeMat = useMemo(() => useFlatGlobeMaterial(), [])
 
   // ----------------------------------------------------------
-  // SECTION: Data fetch (with fallbacks) — 50m simplified
+  // SECTION: Data fetch
   // ----------------------------------------------------------
   useEffect(() => {
     (async () => {
-      const MIN_W = 0.03 // raise to 0.04–0.06 for fewer points
+      const MIN_W = 0.03
 
-      // map world-atlas numeric ids → props your accessors expect
       const ID_TO_PROPS: Record<number, { ISO_A3: string; NAME: string }> = {
         840: { ISO_A3: 'USA', NAME: 'United States of America' },
         124: { ISO_A3: 'CAN', NAME: 'Canada' },
@@ -231,10 +251,9 @@ export default function App() {
         )).json()
 
         const topoPresimplified = presimplify(topo)
-        const topoSimplified    = simplify(topoPresimplified, MIN_W)
+        const topoSimplified = simplify(topoPresimplified, MIN_W)
         const fc: any = feature(topoSimplified, topoSimplified.objects.countries)
 
-        // inject ISO/name props (so your existing accessors keep working)
         fc.features.forEach((f: any) => {
           const id = +f.id
           const props = ID_TO_PROPS[id]
@@ -253,7 +272,6 @@ export default function App() {
         console.warn('[50m topo] failed, falling back:', e)
       }
 
-      // fallbacks (your original sources)
       const fallbacks = [
         'https://cdn.jsdelivr.net/npm/three-globe@2.31.1/example/datasets/ne_110m_admin_0_countries.geojson',
         'https://unpkg.com/three-globe@2.31.1/example/datasets/ne_110m_admin_0_countries.geojson',
@@ -264,7 +282,10 @@ export default function App() {
           const res = await fetch(url, { mode: 'cors' })
           if (!res.ok) throw new Error(`HTTP ${res.status}`)
           const data = await res.json()
-          if (data?.features?.length) { setGeoJson(data); return }
+          if (data?.features?.length) { 
+            setGeoJson(data)
+            return 
+          }
         } catch (e) {
           console.warn('[fallback] failed:', url, e)
         }
@@ -275,28 +296,21 @@ export default function App() {
   }, [])
 
   // ----------------------------------------------------------
-  // SECTION: Controls (autorotate + damping + zoom disabled + polar limits)
+  // SECTION: Controls
   // ----------------------------------------------------------
   useEffect(() => {
     if (!globeRef.current) return
     const controls = globeRef.current.controls()
     
-    // Basic settings
     controls.enableDamping = true
     controls.dampingFactor = 0.05
-    
-    // DISABLE ZOOM (wheel + pinch)
     controls.enableZoom = false
-    
-    // LIMIT VERTICAL ROTATION (prevent flipping over poles)
-    controls.minPolarAngle = THREE.MathUtils.degToRad(35)   // can't tilt too far down
-    controls.maxPolarAngle = THREE.MathUtils.degToRad(145) // can't tilt too far up
-    
-    // Auto-rotate settings
+    controls.minPolarAngle = THREE.MathUtils.degToRad(35)
+    controls.maxPolarAngle = THREE.MathUtils.degToRad(145)
     controls.autoRotate = true
     controls.autoRotateSpeed = 0.25
 
-    const pause  = () => (controls.autoRotate = false)
+    const pause = () => (controls.autoRotate = false)
     const resume = () => (controls.autoRotate = true)
 
     controls.addEventListener('start', pause)
@@ -308,7 +322,7 @@ export default function App() {
   }, [])
 
   // ----------------------------------------------------------
-  // SECTION: URL Parameter Focus (e.g., ?focus=CAN)
+  // SECTION: URL Parameter Focus
   // ----------------------------------------------------------
   useEffect(() => {
     if (!geoJson?.features || !globeRef.current) return
@@ -316,15 +330,12 @@ export default function App() {
     const focusParam = urlParams.get('focus')?.toUpperCase() as GroupKey | null
     if (!focusParam || !GROUPS[focusParam]) return
     
-    // Find the feature for this group
     const targetFeature = geoJson.features.find((f: any) => groupId(f) === focusParam)
     if (!targetFeature) return
     
-    // Focus on this country
     const [lng0, lat0] = sphericalCentroid(targetFeature)
     const lat = applyScreenLift(lat0)
     
-    // Animate to the country with a delay to ensure globe is ready
     setTimeout(() => {
       animatePOV({ lat, lng: lng0, altitude: 1.9 }, 1500, easeInOut)
       startEasedFade(800, 1000)
@@ -334,7 +345,7 @@ export default function App() {
   }, [geoJson, urlParams])
 
   // ----------------------------------------------------------
-  // SECTION: POV "screen lift" (target below center so country sits higher)
+  // SECTION: POV helpers
   // ----------------------------------------------------------
   const SCREEN_LIFT_DEG = 12
   function applyScreenLift(lat: number, liftDeg = SCREEN_LIFT_DEG) {
@@ -342,15 +353,13 @@ export default function App() {
     return Math.max(-85, Math.min(85, out))
   }
 
-  // ----------------------------------------------------------
-  // SECTION: POV animation (cubic-bezier)
-  // ----------------------------------------------------------
   function animatePOV(
     to: { lat: number; lng: number; altitude: number },
     ms = 1000,
     easing: (t: number) => number = easeCB
   ) {
-    const g = globeRef.current; if (!g) return
+    const g = globeRef.current
+    if (!g) return
     const from = g.pointOfView()
     let dLng = to.lng - from.lng
     if (dLng > 180) dLng -= 360
@@ -369,15 +378,16 @@ export default function App() {
     requestAnimationFrame(step)
   }
 
-  // ----------------------------------------------------------
-  // SECTION: Selection fade (delay 500ms; duration 1000ms)
-  // ----------------------------------------------------------
   function startEasedFade(delayMs = 500, durMs = 1000) {
     if (fadeRAF.current) cancelAnimationFrame(fadeRAF.current)
     const t0 = performance.now() + delayMs
     const t1 = t0 + durMs
     const tick = (now: number) => {
-      if (now < t0) { setFadeT(0); fadeRAF.current = requestAnimationFrame(tick); return }
+      if (now < t0) { 
+        setFadeT(0)
+        fadeRAF.current = requestAnimationFrame(tick)
+        return 
+      }
       const p = Math.min(1, (now - t0) / (t1 - t0))
       setFadeT(easeCB(p))
       if (p < 1) fadeRAF.current = requestAnimationFrame(tick)
@@ -389,29 +399,29 @@ export default function App() {
   // SECTION: Initial camera
   // ----------------------------------------------------------
   useEffect(() => {
-    const lat0 = 40, lng0 = -10
+    const lat0 = 40
+    const lng0 = -10
     const lat = applyScreenLift(lat0)
     globeRef.current?.pointOfView({ lat, lng: lng0, altitude: 2.1 }, 0)
   }, [])
 
   // ----------------------------------------------------------
-  // SECTION: Rim glows (inner limb only)
+  // SECTION: Rim glows
   // ----------------------------------------------------------
   useEffect(() => {
     const globe = globeRef.current
     if (!globe) return
 
     const RADIUS = 100
-    const scene  = globe.scene()
+    const scene = globe.scene()
 
     const glowGroup = new THREE.Group()
     scene.add(glowGroup)
 
-    // INNER LIMB
     const innerMat = new THREE.ShaderMaterial({
       uniforms: {
-        p:         { value: 1.0 },
-        strength:  { value: 0.8 },
+        p: { value: 1.0 },
+        strength: { value: 0.8 },
         glowColor: { value: new THREE.Color(0xffffff) }
       },
       vertexShader: RIM_VS,
@@ -433,15 +443,18 @@ export default function App() {
       scene.remove(glowGroup)
       glowGroup.traverse(obj => {
         const mesh = obj as THREE.Mesh
-        // @ts-ignore
-        mesh.material?.dispose?.()
-        mesh.geometry?.dispose?.()
+        if (mesh.material && 'dispose' in mesh.material) {
+          mesh.material.dispose()
+        }
+        if (mesh.geometry) {
+          mesh.geometry.dispose()
+        }
       })
     }
   }, [])
 
   // ----------------------------------------------------------
-  // SECTION: Label from selected group (with URL param support)
+  // SECTION: Label
   // ----------------------------------------------------------
   const labelInfo = useMemo(() => {
     if (!selected) return null
@@ -449,11 +462,14 @@ export default function App() {
     if (!g) return null
     
     const canonicalName: Record<GroupKey, string> = {
-      CAN: 'Canada', USA: 'United States of America', GBR: 'United Kingdom', CHN: 'China', AUS: 'Australia'
+      CAN: 'Canada', 
+      USA: 'United States of America', 
+      GBR: 'United Kingdom', 
+      CHN: 'China', 
+      AUS: 'Australia'
     }
     const STATS_KEY = canonicalName[g]
     
-    // Check for URL parameter overrides
     const officesParam = urlParams.get('offices')
     const employeesParam = urlParams.get('employees')
     
@@ -468,7 +484,7 @@ export default function App() {
   }, [selected, urlParams])
 
   // ----------------------------------------------------------
-  // SECTION: Hover fade state (reversible; same timing as selection)
+  // SECTION: Hover animation
   // ----------------------------------------------------------
   const hoveredGroup = useMemo(() => (hovered ? groupId(hovered) : null), [hovered])
   const HOVER_DUR_MS = 1000
@@ -479,7 +495,7 @@ export default function App() {
   useEffect(() => {
     const toGroup = hoveredGroup
     const fromT = hoverAnimT
-    const toT   = toGroup ? 1 : 0
+    const toT = toGroup ? 1 : 0
     if (toGroup && toGroup !== hoverAnimGroup) setHoverAnimGroup(toGroup)
 
     const t0 = performance.now()
@@ -493,12 +509,14 @@ export default function App() {
     }
     if (hoverRAF.current) cancelAnimationFrame(hoverRAF.current)
     hoverRAF.current = requestAnimationFrame(step)
-    return () => { if (hoverRAF.current) cancelAnimationFrame(hoverRAF.current); hoverRAF.current = null }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hoveredGroup])
+    return () => { 
+      if (hoverRAF.current) cancelAnimationFrame(hoverRAF.current)
+      hoverRAF.current = null 
+    }
+  }, [hoveredGroup, hoverAnimT, hoverAnimGroup])
 
   // ----------------------------------------------------------
-  // SECTION: Styling accessors (no altitude lift)
+  // SECTION: Styling accessors
   // ----------------------------------------------------------
   const ALT_BASE = 0.005
   const MID_GREY_VAL = 160
@@ -513,9 +531,9 @@ export default function App() {
     if (hoverAnimGroup && gid && gid === hoverAnimGroup) return greyToWhite(hoverAnimT)
     return isSelectable(feat) ? COLOR_MID : COLOR_DARK
   }
-  const polygonSideColor   = () => 'rgba(0,0,0,0)'
+  const polygonSideColor = () => 'rgba(0,0,0,0)'
   const polygonStrokeColor = () => 'rgba(255,255,255,0.15)'
-  const polygonAltitude    = () => ALT_BASE
+  const polygonAltitude = () => ALT_BASE
 
   // ----------------------------------------------------------
   // SECTION: Render
@@ -593,11 +611,16 @@ function sphericalCentroid(feat: any): [number, number] {
       const lng = (p[0] * Math.PI) / 180
       const lat = (p[1] * Math.PI) / 180
       const cl = Math.cos(lat)
-      x += cl * Math.cos(lng); y += cl * Math.sin(lng); z += Math.sin(lat); n++
+      x += cl * Math.cos(lng)
+      y += cl * Math.sin(lng)
+      z += Math.sin(lat)
+      n++
     }
   }
   if (!n) return [0, 0]
-  x /= n; y /= n; z /= n
+  x /= n
+  y /= n
+  z /= n
   const hyp = Math.hypot(x, y)
   const lat = (Math.atan2(z, hyp) * 180) / Math.PI
   let lng = (Math.atan2(y, x) * 180) / Math.PI
@@ -607,6 +630,8 @@ function sphericalCentroid(feat: any): [number, number] {
 }
 
 function setAutoRotate(globeRef: React.RefObject<any>, on: boolean) {
-  const g = globeRef.current; if (!g) return
-  const controls = g.controls(); controls.autoRotate = on
+  const g = globeRef.current
+  if (!g) return
+  const controls = g.controls()
+  controls.autoRotate = on
 }
