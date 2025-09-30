@@ -34,9 +34,9 @@ html, body {
 #globeRoot .globeStage {
   position: absolute;
   inset: 0;
-  /* Position globe so bottom is cut off by viewport edge */
+  /* Make globe larger and push DOWN so bottom is cut off */
   height: 150vh;
-  top: -25vh; /* Push up so bottom portion is below fold */
+  top: 25vh; /* Push DOWN (positive value) so bottom is below viewport */
 }
 
 /* Ensure the canvas follows the container exactly */
