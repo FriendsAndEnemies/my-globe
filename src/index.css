@@ -19,11 +19,11 @@ html, body {
   margin: 0;
   text-align: unset;
 }
-/* ===== Clean Globe Layout (16:9 aspect ratio, centered) ===== */
+/* ===== Clean Globe Layout (fills available space) ===== */
 #globeRoot {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 9;  /* Fixed 16:9 ratio */
+  height: 100%;
   overflow: hidden;
   background: #000000;
 }
