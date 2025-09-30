@@ -681,15 +681,13 @@ export default function App() {
 
       <div className="globeStage">
         {!geoJson?.features && (
-          <div style={{ position: 'absolute', top: 12, left: 12, fontSize: 12, opacity: 0.7 }}>
+          <div style={{ position: 'absolute', top: 12, left: 12, fontSize: 12, opacity: 0.7, pointerEvents: 'none' }}>
             Loading country polygons…
           </div>
         )}
 
         <Globe
           ref={globeRef}
-          width={undefined}
-          height={undefined}
           backgroundColor="rgba(0,0,0,0)"
           showAtmosphere={true}
           atmosphereColor="#ffffff"
@@ -725,6 +723,10 @@ export default function App() {
           }}
 
           enablePointerInteraction={true}
+          pointerEventsFilter={(obj: any) => {
+            // Ensure only our polygons are clickable
+            return obj && obj.__data && isSelectable(obj.__data)
+          }}
         />
       </div>
     </div>
