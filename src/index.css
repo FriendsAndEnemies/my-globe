@@ -1,52 +1,56 @@
 /* ===== Global baseline ===== */
 :root, html, body, #root {
+  width: 100%;
   height: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 html, body {
-  margin: 0;
-  background: #0a0a0a; /* deep grey/black */
+  background: #000000; /* pure black */
   color: #fff;
   font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto,
     "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji",
     "Segoe UI Symbol";
+  overflow: hidden;
 }
 
-/* Use modern viewport units so iOS toolbars don't leave gaps */
 #root {
-  width: 100%;
-  height: 100%;
-  /* min-height: 100vh; allback for standalone pages */
+  max-width: none;
+  text-align: unset;
 }
 
-/* ===== Clean Globe Layout (centered, fixed aspect ratio) ===== */
+/* ===== Globe Layout (fills container, scaled for size) ===== */
 #globeRoot {
-  position: relative;
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   overflow: hidden;
+  background: #000000; /* pure black space */
+  pointer-events: none;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
 }
 
 #globeRoot .globeStage {
   position: relative;
-  /* Fixed aspect ratio - globe is always square based on width */
   width: 100%;
-  aspect-ratio: 16 / 9; /* Perfect square */
-  /* Scale up to show more globe area */
-  transform: scale(1.5) translateY(17%);
-  transform-origin: center top;
+  max-width: 100%;
+  aspect-ratio: 16 / 9;
+  transform: scale(1.6);
+  transform-origin: center center;
+  pointer-events: auto;
 }
 
-/* Ensure the canvas is also centered within the stage */
+/* Ensure the canvas scales properly */
 #globeRoot .globeStage canvas {
   display: block;
   width: 100% !important;
   height: 100% !important;
-  transform: none !important;
-  margin: 0 auto;
+  pointer-events: auto !important;
+  touch-action: none;
 }
 
 /* ===== Country Label Overlay ===== */
