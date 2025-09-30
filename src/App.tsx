@@ -94,7 +94,7 @@ function isSelectable(f: any) { return groupId(f) !== null }
 // SECTION: Stats (match by ISO3 or name)
 // ------------------------------------------------------------
 const COUNTRY_STATS: Record<string, { offices: number; employees: number }> = {
-  CAN: { offices: 10, employees: 1,123 }, Canada: { offices: 10, employees: 1,123 },
+  CAN: { offices: 10, employees: 1123 }, Canada: { offices: 10, employees: 1123 },
   USA: { offices: 6, employees: 362 }, 'United States of America': { offices: 6, employees: 362 },
   GBR: { offices: 17, employees: 765 }, 'United Kingdom': { offices: 17, employees: 765 },
   CHN: { offices: 2, employees: 12 }, China: { offices: 3, employees: 12 },
