@@ -326,7 +326,7 @@ export default function App() {
     
     // Animate to the country with a delay to ensure globe is ready
     setTimeout(() => {
-      animatePOV({ lat, lng: lng0, altitude: 1.0 }, 1500, easeInOut)
+      animatePOV({ lat, lng: lng0, altitude: 1.5 }, 1500, easeInOut)
       startEasedFade(800, 1000)
       setSelected(targetFeature)
       setAutoRotate(globeRef, false)
@@ -391,7 +391,7 @@ export default function App() {
   useEffect(() => {
     const lat0 = 40, lng0 = -10
     const lat = applyScreenLift(lat0)
-    globeRef.current?.pointOfView({ lat, lng: lng0, altitude: 1.0 }, 0)
+    globeRef.current?.pointOfView({ lat, lng: lng0, altitude: 1.5 }, 0)
   }, [])
 
   // ----------------------------------------------------------
@@ -568,7 +568,7 @@ export default function App() {
             if (!isSelectable(feat)) return
             const [lng0, lat0] = sphericalCentroid(feat)
             const lat = applyScreenLift(lat0)
-            animatePOV({ lat, lng: lng0, altitude: 1.0 }, 1000, easeInOut)
+            animatePOV({ lat, lng: lng0, altitude: 1.5 }, 1000, easeInOut)
             startEasedFade(500, 1000)
             setSelected(feat)
             setAutoRotate(globeRef, false)
