@@ -29,21 +29,22 @@ html, body {
 
 #globeRoot .globeStage {
   position: absolute;
-  /* Center the globe horizontally */
-  left: 50%;
-  transform: translateX(-50%);
   /* Make globe larger and push DOWN so bottom is cut off */
-  width: 100%;
-  height: 150%;  /* Use % instead of vh */
-  top: 25%;      /* Use % instead of vh */
+  width: 150%;  /* Make wider to ensure coverage */
+  height: 150%;
+  /* Center horizontally and position vertically */
+  left: 50%;
+  top: 25%;
+  transform: translateX(-50%); /* Center the entire stage */
 }
 
-/* Ensure the canvas follows the container exactly */
+/* Ensure the canvas is also centered within the stage */
 #globeRoot .globeStage canvas {
   display: block;
   width: 100% !important;
   height: 100% !important;
   transform: none !important;
+  margin: 0 auto;
 }
 
 /* ===== Country Label Overlay ===== */
