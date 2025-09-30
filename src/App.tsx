@@ -119,11 +119,11 @@ const COUNTRY_STATS: Record<string, { offices: number; employees: number }> = {
 // SECTION: Custom Camera Views (user-defined optimal angles)
 // ------------------------------------------------------------
 const CUSTOM_VIEWS: Record<GroupKey, { lat: number; lng: number; altitude: number }> = {
-  CAN: { lat: 40.61, lng: -98.85, altitude: 2.10 },
-  USA: { lat: 27.00, lng: -95.21, altitude: 2.10 },
-  GBR: { lat: 32.66, lng: -1.34, altitude: 2.10 },
-  CHN: { lat: 20.23, lng: 105.72, altitude: 2.10 },
-  AUS: { lat: -47.68, lng: 136.88, altitude: 2.10 }
+  CAN: { lat: 40.61, lng: -98.85, altitude: 1.6 },
+  USA: { lat: 27.00, lng: -95.21, altitude: 1.6 },
+  GBR: { lat: 32.66, lng: -1.34, altitude: 1.6 },
+  CHN: { lat: 20.23, lng: 105.72, altitude: 1.6 },
+  AUS: { lat: -47.68, lng: 136.88, altitude: 1.6 }
 }
 
 // ------------------------------------------------------------
