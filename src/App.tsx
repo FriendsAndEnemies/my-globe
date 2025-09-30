@@ -480,7 +480,7 @@ export default function App() {
     const lat0 = 40
     const lng0 = -10
     const lat = applyScreenLift(lat0)
-    globeRef.current?.pointOfView({ lat, lng: lng0, altitude: 1.6 }, 0)
+    globeRef.current?.pointOfView({ lat, lng: lng0, altitude: 1.2 }, 0)
   }, [])
 
   // ----------------------------------------------------------
