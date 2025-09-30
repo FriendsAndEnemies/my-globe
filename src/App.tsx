@@ -103,16 +103,16 @@ function isSelectable(f: any) { return groupId(f) !== null }
 // SECTION: Stats (match by ISO3 or name)
 // ------------------------------------------------------------
 const COUNTRY_STATS: Record<string, { offices: number; employees: number }> = {
-  CAN: { offices: 6, employees: 562 }, 
-  Canada: { offices: 6, employees: 562 },
-  USA: { offices: 14, employees: 3280 }, 
-  'United States of America': { offices: 14, employees: 3280 },
-  GBR: { offices: 3, employees: 420 }, 
-  'United Kingdom': { offices: 3, employees: 420 },
-  CHN: { offices: 8, employees: 1900 }, 
-  China: { offices: 8, employees: 1900 },
-  AUS: { offices: 4, employees: 510 }, 
-  Australia: { offices: 4, employees: 510 }
+  CAN: { offices: 10, employees: 1123 }, 
+  Canada: { offices: 10, employees: 1123 },
+  USA: { offices: 6, employees: 362 }, 
+  'United States of America': { offices: 6, employees: 362 },
+  GBR: { offices: 17, employees: 765 }, 
+  'United Kingdom': { offices: 17, employees: 765 },
+  CHN: { offices: 3, employees: 12 }, 
+  China: { offices: 3, employees: 12 },
+  AUS: { offices: 11, employees: 351 }, 
+  Australia: { offices: 11, employees: 351 }
 }
 
 // ------------------------------------------------------------
@@ -480,7 +480,14 @@ export default function App() {
       employees: employeesParam ? parseInt(employeesParam, 10) || 0 : defaultStats.employees
     }
     
-    return { name: canonicalName[g], ...stats }
+    // Format numbers with thousands separator
+    const formattedStats = {
+      name: canonicalName[g],
+      offices: stats.offices.toLocaleString('en-US'),
+      employees: stats.employees.toLocaleString('en-US')
+    }
+    
+    return formattedStats
   }, [selected, urlParams])
 
   // ----------------------------------------------------------
