@@ -32,7 +32,7 @@ const GROUPS: Record<
       'Northern Ireland'
     ]
   },
-  CHN: { iso3: ['CHN'], names: ['China', 'People's Republic of China', 'Peoples Republic of China'] },
+  CHN: { iso3: ['CHN'], names: ['China', 'People\'s Republic of China', 'Peoples Republic of China'] },
   AUS: { iso3: ['AUS'], names: ['Australia'] }
 }
 
