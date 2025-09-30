@@ -119,11 +119,11 @@ const COUNTRY_STATS: Record<string, { offices: number; employees: number }> = {
 // SECTION: Custom Camera Views (user-defined optimal angles)
 // ------------------------------------------------------------
 const CUSTOM_VIEWS: Record<GroupKey, { lat: number; lng: number; altitude: number }> = {
-  CAN: { lat: 40.61, lng: -98.85, altitude: 1.6 },
-  USA: { lat: 27.00, lng: -95.21, altitude: 1.6 },
-  GBR: { lat: 32.66, lng: -1.34, altitude: 1.6 },
-  CHN: { lat: 20.23, lng: 105.72, altitude: 1.6 },
-  AUS: { lat: -47.68, lng: 136.88, altitude: 1.6 }
+  CAN: { lat: 40.61, lng: -98.85, altitude: 1.80 },
+  USA: { lat: 27.00, lng: -95.21, altitude: 1.80 },
+  GBR: { lat: 32.66, lng: -1.34, altitude: 1.80 },
+  CHN: { lat: 20.23, lng: 105.72, altitude: 1.80 },
+  AUS: { lat: -47.68, lng: 136.88, altitude: 1.80 }
 }
 
 // ------------------------------------------------------------
@@ -415,7 +415,7 @@ export default function App() {
     const lat = applyScreenLift(lat0)
     
     setTimeout(() => {
-      animatePOV({ lat, lng: lng0, altitude: 1.6 }, 1500, easeInOut)
+      animatePOV({ lat, lng: lng0, altitude: 1.9 }, 1500, easeInOut)
       startEasedFade(800, 1000)
       setSelected(targetFeature)
       setAutoRotate(globeRef, false)
@@ -480,7 +480,7 @@ export default function App() {
     const lat0 = 40
     const lng0 = -10
     const lat = applyScreenLift(lat0)
-    globeRef.current?.pointOfView({ lat, lng: lng0, altitude: 1.2 }, 0)
+    globeRef.current?.pointOfView({ lat, lng: lng0, altitude: 1.8 }, 0)
   }, [])
 
   // ----------------------------------------------------------
@@ -732,7 +732,7 @@ export default function App() {
           backgroundColor="rgba(0,0,0,0)"
           showAtmosphere={true}
           atmosphereColor="#ffffff"
-          atmosphereAltitude={0.1}
+          atmosphereAltitude={0.2}
           globeMaterial={globeMat}
           rendererConfig={{ antialias: true, alpha: true, logarithmicDepthBuffer: true }}
 
@@ -755,7 +755,7 @@ export default function App() {
             } else {
               const [lng0, lat0] = sphericalCentroid(feat)
               const lat = applyScreenLift(lat0)
-              animatePOV({ lat, lng: lng0, altitude: 1.9 }, 1000, easeInOut)
+              animatePOV({ lat, lng: lng0, altitude: 1.8 }, 1000, easeInOut)
             }
             
             startEasedFade(500, 1000)
