@@ -286,7 +286,7 @@ export default function App() {
     controls.dampingFactor = 0.05
     
     // DISABLE ZOOM (wheel + pinch)
-    controls.enableZoom = false
+    controls.enableZoom = true
     
     // LIMIT VERTICAL ROTATION (prevent flipping over poles)
     controls.minPolarAngle = THREE.MathUtils.degToRad(35)   // can't tilt too far down
