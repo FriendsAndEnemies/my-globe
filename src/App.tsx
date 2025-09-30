@@ -415,7 +415,7 @@ export default function App() {
     const lat = applyScreenLift(lat0)
     
     setTimeout(() => {
-      animatePOV({ lat, lng: lng0, altitude: 1.9 }, 1500, easeInOut)
+      animatePOV({ lat, lng: lng0, altitude: 1.6 }, 1500, easeInOut)
       startEasedFade(800, 1000)
       setSelected(targetFeature)
       setAutoRotate(globeRef, false)
@@ -480,7 +480,7 @@ export default function App() {
     const lat0 = 40
     const lng0 = -10
     const lat = applyScreenLift(lat0)
-    globeRef.current?.pointOfView({ lat, lng: lng0, altitude: 2.1 }, 0)
+    globeRef.current?.pointOfView({ lat, lng: lng0, altitude: 1.6 }, 0)
   }, [])
 
   // ----------------------------------------------------------
@@ -732,7 +732,7 @@ export default function App() {
           backgroundColor="rgba(0,0,0,0)"
           showAtmosphere={true}
           atmosphereColor="#ffffff"
-          atmosphereAltitude={0.2}
+          atmosphereAltitude={0.1}
           globeMaterial={globeMat}
           rendererConfig={{ antialias: true, alpha: true, logarithmicDepthBuffer: true }}
 
