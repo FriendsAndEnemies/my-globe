@@ -16,28 +16,30 @@ html, body {
 #root {
   width: 100%;
   height: 100%;
-  /* min-height: 100vh; Fallback for standalone pages */
+  max-width: none;
+  padding: 0;
+  margin: 0;
+  text-align: unset;
 }
 
-/* ===== Clean Globe Layout (centered, fixed aspect ratio) ===== */
+/* ===== Clean Globe Layout (16:9 aspect ratio, centered) ===== */
 #globeRoot {
   position: relative;
   width: 100%;
-  height: 100%;
+  aspect-ratio: 16 / 9;  /* Fixed 16:9 ratio */
   overflow: hidden;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
+  background: #0a0a0a;
 }
 
 #globeRoot .globeStage {
-  position: relative;
-  /* Fixed aspect ratio - globe is always square based on width */
+  position: absolute;
+  inset: 0;
+  /* Make globe larger and push down to crop bottom */
   width: 100%;
-  aspect-ratio: 16 / 9; /* Perfect square */
-  /* Scale up to show more globe area */
-  transform: scale(1.5) translateY(17%);
-  transform-origin: center top;
+  height: 150%;
+  top: 25%;
+  left: 0;
+  pointer-events: auto;  /* Ensure clickability */
 }
 
 /* Ensure the canvas is also centered within the stage */
@@ -56,7 +58,7 @@ html, body {
   left: 50%;
   transform: translateX(-50%);
   text-align: center;
-  pointer-events: none;
+  pointer-events: none;  /* CRITICAL: Label must not block clicks */
   z-index: 100;
 }
 
