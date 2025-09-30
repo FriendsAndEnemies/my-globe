@@ -27,11 +27,16 @@ html, body {
   width: 100%;
   height: 100vh;
   overflow: hidden;
+  /* Show only top portion of globe */
+  --globe-reveal: 65%; /* Adjust this value: 50% = show top half, 70% = show more */
 }
 
 #globeRoot .globeStage {
   position: absolute;
   inset: 0;
+  /* Position globe so bottom is cut off by viewport edge */
+  height: 150vh;
+  top: -25vh; /* Push up so bottom portion is below fold */
 }
 
 /* Ensure the canvas follows the container exactly */
