@@ -1,5 +1,4 @@
 // src/DebugPanel.tsx
-import React from 'react'
 
 interface DebugPanelProps {
   currentPOV: { lat: number; lng: number; altitude: number }
@@ -8,7 +7,7 @@ interface DebugPanelProps {
   onClose: () => void
 }
 
-export default function DebugPanel({ currentPOV, dimensions, selectedCountry, onClose }: DebugPanelProps) {
+export default function DebugPanel({ currentPOV, dimensions, selectedCountry }: DebugPanelProps) {
   const handleCopy = () => {
     const code = `{ lat: ${currentPOV.lat.toFixed(2)}, lng: ${currentPOV.lng.toFixed(2)}, altitude: ${currentPOV.altitude.toFixed(2)} }`
     navigator.clipboard.writeText(code)
