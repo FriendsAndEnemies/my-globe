@@ -30,7 +30,7 @@ html, body {
 #globeRoot .globeStage {
   position: absolute;
   inset: 0;
-  bottom: -50%;
+  top: 10%;
    width: 100%;
    height: 150%;
   /* Make globe larger and push down to crop bottom 
