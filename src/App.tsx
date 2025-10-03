@@ -7,6 +7,7 @@ import Globe from 'react-globe.gl'
 import * as THREE from 'three'
 import { feature } from 'topojson-client'
 import { presimplify, simplify } from 'topojson-simplify'
+import DebugPanel from './DebugPanel'
 
 // ------------------------------------------------------------
 // SECTION: Grouping: selectable country bundles + helpers
@@ -394,6 +395,15 @@ export default function App() {
     globeRef.current?.pointOfView({ lat, lng: lng0, altitude: 1.5 }, 0)
   }, [])
 
+  useEffect(() => {
+  if (!debugMode || !globeRef.current) return
+  const interval = setInterval(() => {
+    const pov = globeRef.current.pointOfView()
+    setCurrentPOV(pov)
+  }, 100)
+  return () => clearInterval(interval)
+}, [debugMode])
+
   // ----------------------------------------------------------
   // SECTION: Rim glows (inner limb only)
   // ----------------------------------------------------------
@@ -538,6 +548,15 @@ export default function App() {
         </div>
       )}
 
+      {debugMode && (
+  <DebugPanel
+    currentPOV={currentPOV}
+    dimensions={dimensions}
+    selectedCountry={selected ? groupId(selected) : null}
+    onClose={() => setDebugMode(false)}
+  />
+)}
+
       <div className="globeStage">
         {!geoJson?.features && (
           <div style={{ position: 'absolute', top: 12, left: 12, fontSize: 12, opacity: 0.7 }}>
@@ -610,3 +629,13 @@ function setAutoRotate(globeRef: React.RefObject<any>, on: boolean) {
   const g = globeRef.current; if (!g) return
   const controls = g.controls(); controls.autoRotate = on
 }
+// ------------------------------------------------------------
+// SECTION: Debugger
+//
+useEffect(() => {
+  const handleKeyPress = (e: KeyboardEvent) => {
+    if (e.key === 'd' || e.key === 'D') setDebugMode(prev => !prev)
+  }
+  window.addEventListener('keydown', handleKeyPress)
+  return () => window.removeEventListener('keydown', handleKeyPress)
+}, [])
