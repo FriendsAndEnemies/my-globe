@@ -154,10 +154,6 @@ export default function App() {
       if (containerRef.current) {
         const { clientWidth, clientHeight } = containerRef.current
         setDimensions({ width: clientWidth, height: clientHeight })
-        if (globeRef.current) {
-          globeRef.current.width(clientWidth)
-          globeRef.current.height(clientHeight)
-        }
       }
     }
     updateDimensions()
