@@ -24,21 +24,17 @@ html, body {
   position: relative;
   width: 100%;
   height: 100%;
-  overflow: visible;
+  overflow: visible;  /* Allow glow to extend beyond bounds */
   background: #000000;
 }
 #globeRoot .globeStage {
   position: absolute;
-  inset: 0;
-  top: 10%;
-   width: 100%;
-   height: 100%;
-   overflow: visible;
-  /* Make globe larger and push down to crop bottom 
-  
-  top: 25%;*/
+  width: 100%;
+  height: 100%;
+  /* Position so globe appears to rise from bottom */
+  bottom: -50%;  /* Push the stage down so only top half is visible */
   left: 0;
-  pointer-events: auto;  /* Ensure clickability */
+  pointer-events: auto;
 }
 /* Ensure the canvas is also centered within the stage */
 #globeRoot .globeStage canvas {
