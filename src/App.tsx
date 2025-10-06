@@ -539,7 +539,6 @@ export function App({ onCountrySelect }: { onCountrySelect?: (data: any) => void
       "*"
     )
   }
-}}
     } }} enablePointerInteraction={true} />
       </div>
     </div>
