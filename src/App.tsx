@@ -426,7 +426,7 @@ export function App() {
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'flex-start',
-                gap: '12px'
+                gap: '4px'
               }}>
                 <div className="num" style={{
                   fontFamily: "'Alike', serif",
@@ -457,7 +457,7 @@ export function App() {
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'flex-start',
-                gap: '12px'
+                gap: '4px'
               }}>
                 <div className="num" style={{
                   fontFamily: "'Alike', serif",
