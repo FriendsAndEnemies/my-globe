@@ -39,7 +39,7 @@ html, body, #root {
 
 .globe-stage {
   position: absolute;
-  inset: 0;               /* let react-globe fill this box */
+  inset: -80 0 0 0;               /* let react-globe fill this box */
 }
 
 /* Ensure the canvas follows the container exactly */
@@ -56,7 +56,7 @@ html, body, #root {
   top: 24px;
   left: 50%;
   transform: translateX(-50%);
-  text-align: center;
+  text-align: left;
   pointer-events: none;
 }
 .country-label h2 {
@@ -69,7 +69,7 @@ html, body, #root {
 .country-metrics {
   display: grid;
   grid-auto-flow: column;
-  gap: 24px;
+  gap: 12px;
   font-variant-numeric: tabular-nums;
 }
 .country-metrics .metric { display: grid; gap: 2px; justify-items: center; }
