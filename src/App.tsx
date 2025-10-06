@@ -392,8 +392,7 @@ export default function App() {
         <div style={{ 
           position: 'absolute',
           top: '24px',
-          left: '50%',
-          transform: 'translateX(-50%)',
+          left: '80px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'flex-start',
@@ -437,27 +436,29 @@ export default function App() {
               fontWeight: 'bold',
               margin: 0,
               marginBottom: '24px',
-              letterSpacing: '0.05em'
+              letterSpacing: '0.05em',
+              textAlign: 'left'
             }}>
               {labelInfo.name}
             </h2>
             <div className="country-metrics" style={{
               display: 'flex',
               flexDirection: 'row',
-              alignItems: 'center',
+              alignItems: 'flex-start',
               gap: '24px'
             }}>
               <div className="metric" style={{
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'flex-start',
-                gap: '12px'
+                gap: '4px'
               }}>
                 <div className="num" style={{
                   fontFamily: "'Alike', serif",
                   fontSize: '2rem',
                   fontWeight: 400,
-                  color: '#FFFFFF'
+                  color: '#FFFFFF',
+                  lineHeight: '1'
                 }}>
                   {labelInfo.offices}
                 </div>
@@ -482,13 +483,14 @@ export default function App() {
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'flex-start',
-                gap: '12px'
+                gap: '4px'
               }}>
                 <div className="num" style={{
                   fontFamily: "'Alike', serif",
                   fontSize: '2rem',
                   fontWeight: 400,
-                  color: '#FFFFFF'
+                  color: '#FFFFFF',
+                  lineHeight: '1'
                 }}>
                   {labelInfo.employees}
                 </div>
