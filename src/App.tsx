@@ -4,6 +4,7 @@ import Globe from 'react-globe.gl'
 import * as THREE from 'three'
 import { feature } from 'topojson-client'
 import { presimplify, simplify } from 'topojson-simplify'
+import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js'
 
 type GroupKey = 'CAN' | 'USA' | 'GBR' | 'CHN' | 'AUS'
 
@@ -145,6 +146,47 @@ export default function App() {
   const fadeRAF = useRef<number | null>(null)
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
   const globeMat = useMemo(() => useFlatGlobeMaterial(), [])
+
+  const download = (file: Blob, name: string) => {
+    const url = URL.createObjectURL(file)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = name
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
+  }
+
+  const exportGlobeGLB = () => {
+    const g = globeRef.current
+    if (!g) return
+
+    const scene = g.scene().clone(true)
+
+    const toRemove: THREE.Object3D[] = []
+    scene.traverse(obj => {
+      if ((obj as any).userData?.excludeFromExport) toRemove.push(obj)
+      if (obj.type === 'AxesHelper' || obj.type === 'GridHelper') toRemove.push(obj)
+    })
+    toRemove.forEach(o => o.parent?.remove(o))
+
+    const exporter = new GLTFExporter()
+    exporter.parse(
+      scene,
+      (result) => {
+        const blob =
+          result instanceof ArrayBuffer
+            ? new Blob([result], { type: 'model/gltf-binary' })
+            : new Blob([JSON.stringify(result)], { type: 'model/gltf+json' })
+
+        download(blob, 'globe.glb')
+      },
+      (error) => {
+        console.error('GLB export error:', error)
+      }
+    )
+  }
 
   useEffect(() => {
     const updateDimensions = () => {
@@ -304,6 +346,7 @@ export default function App() {
     const RADIUS = 100
     const scene = globe.scene()
     const glowGroup = new THREE.Group()
+    glowGroup.userData.excludeFromExport = true
     scene.add(glowGroup)
     const innerMat = new THREE.ShaderMaterial({
       uniforms: { p: { value: 1.0 }, strength: { value: 0.8 }, glowColor: { value: new THREE.Color(0xffffff) } },
@@ -388,6 +431,25 @@ export default function App() {
 
   return (
     <div id="globeRoot">
+      <button
+        onClick={exportGlobeGLB}
+        style={{
+          position: 'absolute',
+          top: '16px',
+          right: '16px',
+          zIndex: 10,
+          background: '#111',
+          color: '#fff',
+          border: '1px solid #333',
+          padding: '6px 10px',
+          borderRadius: '6px',
+          cursor: 'pointer',
+          fontSize: '12px'
+        }}
+      >
+        Export GLB
+      </button>
+
       {labelInfo && (
         <div className="country-label">
           <h2>{labelInfo.name}</h2>
