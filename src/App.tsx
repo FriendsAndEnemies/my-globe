@@ -393,6 +393,7 @@ export default function App() {
           position: 'absolute',
           top: '24px',
           left: '80px',
+          transform: 'translateX(-50%)',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'flex-start',
@@ -430,35 +431,33 @@ export default function App() {
           <div className="country-label">
             <h2 style={{
               fontFamily: "'Canaccord Effra Bold', sans-serif",
-              fontSize: '0.8rem',
+              fontSize: '.8rem',
               color: '#AEAEAE',
               textTransform: 'uppercase',
               fontWeight: 'bold',
               margin: 0,
               marginBottom: '24px',
-              letterSpacing: '0.05em',
-              textAlign: 'left'
+              letterSpacing: '0.05em'
             }}>
               {labelInfo.name}
             </h2>
             <div className="country-metrics" style={{
               display: 'flex',
               flexDirection: 'row',
-              alignItems: 'flex-start',
+              alignItems: 'center',
               gap: '24px'
             }}>
               <div className="metric" style={{
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'flex-start',
-                gap: '4px'
+                gap: '12px'
               }}>
                 <div className="num" style={{
                   fontFamily: "'Alike', serif",
                   fontSize: '2rem',
                   fontWeight: 400,
-                  color: '#FFFFFF',
-                  lineHeight: '1'
+                  color: '#FFFFFF'
                 }}>
                   {labelInfo.offices}
                 </div>
@@ -483,14 +482,13 @@ export default function App() {
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'flex-start',
-                gap: '4px'
+                gap: '12px'
               }}>
                 <div className="num" style={{
                   fontFamily: "'Alike', serif",
                   fontSize: '2rem',
                   fontWeight: 400,
-                  color: '#FFFFFF',
-                  lineHeight: '1'
+                  color: '#FFFFFF'
                 }}>
                   {labelInfo.employees}
                 </div>
