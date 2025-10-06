@@ -389,77 +389,117 @@ export default function App() {
   return (
     <div id="globeRoot">
       {labelInfo && (
-        <div className="country-label" style={{ pointerEvents: 'none' }}>
-          <h2 style={{
-            fontFamily: "'Canaccord Effra Bold', sans-serif",
-            fontSize: '1.1rem',
-            color: '#AEAEAE',
-            textTransform: 'uppercase',
-            fontWeight: 'bold',
-            margin: 0,
-            marginBottom: '24px',
-            letterSpacing: '0.05em'
-          }}>
-            {labelInfo.name}
-          </h2>
-          <div className="country-metrics" style={{
-            display: 'flex',
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: '24px'
-          }}>
-            <div className="metric" style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'flex-start',
-              gap: '12px'
-            }}>
-              <div className="num" style={{
-                fontFamily: "'Alike', serif",
-                fontSize: '2rem',
-                fontWeight: 400,
-                color: '#FFFFFF'
-              }}>
-                {labelInfo.offices}
-              </div>
-              <div className="label" style={{
-                fontFamily: "'Canaccord Effra Regular', sans-serif",
-                fontSize: '1rem',
-                color: '#FFFFFF',
-                textTransform: 'none'
-              }}>
-                Offices
-              </div>
-            </div>
-            <div className="divider" style={{
-              fontSize: '2rem',
+        <div style={{ 
+          position: 'absolute',
+          top: '24px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'flex-start',
+          pointerEvents: 'none',
+          zIndex: 100
+        }}>
+          {/* Connecting Line */}
+          <svg 
+            style={{
+              position: 'absolute',
+              left: '-60px',
+              top: '50px',
+              width: '2px',
+              height: '200px',
+              pointerEvents: 'none'
+            }}
+          >
+            <defs>
+              <linearGradient id="lineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#FFFFFF" />
+                <stop offset="100%" stopColor="#1A5999" />
+              </linearGradient>
+            </defs>
+            <line 
+              x1="1" 
+              y1="0" 
+              x2="1" 
+              y2="200" 
+              stroke="url(#lineGradient)" 
+              strokeWidth="2"
+            />
+          </svg>
+
+          {/* Label Card */}
+          <div className="country-label">
+            <h2 style={{
+              fontFamily: "'Canaccord Effra Bold', sans-serif",
+              fontSize: '1.1rem',
               color: '#AEAEAE',
-              lineHeight: '1',
-              alignSelf: 'stretch',
-              display: 'flex',
-              alignItems: 'center'
-            }}>/</div>
-            <div className="metric" style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'flex-start',
-              gap: '12px'
+              textTransform: 'uppercase',
+              fontWeight: 'bold',
+              margin: 0,
+              marginBottom: '24px',
+              letterSpacing: '0.05em'
             }}>
-              <div className="num" style={{
-                fontFamily: "'Alike', serif",
-                fontSize: '2rem',
-                fontWeight: 400,
-                color: '#FFFFFF'
+              {labelInfo.name}
+            </h2>
+            <div className="country-metrics" style={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: '24px'
+            }}>
+              <div className="metric" style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                gap: '12px'
               }}>
-                {labelInfo.employees}
+                <div className="num" style={{
+                  fontFamily: "'Alike', serif",
+                  fontSize: '2rem',
+                  fontWeight: 400,
+                  color: '#FFFFFF'
+                }}>
+                  {labelInfo.offices}
+                </div>
+                <div className="label" style={{
+                  fontFamily: "'Canaccord Effra Regular', sans-serif",
+                  fontSize: '1rem',
+                  color: '#FFFFFF',
+                  textTransform: 'none'
+                }}>
+                  Offices
+                </div>
               </div>
-              <div className="label" style={{
-                fontFamily: "'Canaccord Effra Regular', sans-serif",
-                fontSize: '1rem',
-                color: '#FFFFFF',
-                textTransform: 'none'
+              <div className="divider" style={{
+                fontSize: '2rem',
+                color: '#AEAEAE',
+                lineHeight: '1',
+                alignSelf: 'stretch',
+                display: 'flex',
+                alignItems: 'center'
+              }}>/</div>
+              <div className="metric" style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                gap: '12px'
               }}>
-                Employees
+                <div className="num" style={{
+                  fontFamily: "'Alike', serif",
+                  fontSize: '2rem',
+                  fontWeight: 400,
+                  color: '#FFFFFF'
+                }}>
+                  {labelInfo.employees}
+                </div>
+                <div className="label" style={{
+                  fontFamily: "'Canaccord Effra Regular', sans-serif",
+                  fontSize: '1rem',
+                  color: '#FFFFFF',
+                  textTransform: 'none'
+                }}>
+                  Employees
+                </div>
               </div>
             </div>
           </div>
