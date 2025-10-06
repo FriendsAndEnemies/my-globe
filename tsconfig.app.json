@@ -24,4 +24,5 @@
     "noUncheckedSideEffectImports": true
   },
   "include": ["src"]
+  "exclude": ["src/_Archive"]
 }
