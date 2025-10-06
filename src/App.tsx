@@ -481,7 +481,7 @@ export function App() {
         </div>
       )}
       
-      <div className="globeStage" ref={containerRef} style={{ position: 'absolute', inset: '-80 0 0 0', pointerEvents: 'auto' }}>
+      <div className="globeStage" ref={containerRef} style={{ position: 'absolute', top: '-80px', right: 0, bottom: 0, left: 0, pointerEvents: 'auto' }}>
         {!geoJson?.features && (<div style={{ position: 'absolute', top: 12, left: 12, fontSize: 12, opacity: 0.7, pointerEvents: 'none' }}>Loading country polygons</div>)}
         <Globe ref={globeRef} width={dimensions.width} height={dimensions.height} backgroundColor="rgba(0,0,0,0)" showAtmosphere={true} atmosphereColor="#ffffff" atmosphereAltitude={0.2} globeMaterial={globeMat} rendererConfig={{ antialias: true, alpha: true, logarithmicDepthBuffer: true }} polygonsData={geoJson?.features || []} polygonCapColor={polygonCapColor} polygonSideColor={polygonSideColor} polygonStrokeColor={polygonStrokeColor} polygonAltitude={polygonAltitude} polygonsTransitionDuration={0} onPolygonHover={(f: any) => setHovered(f && isSelectable(f) ? f : null)} 
           onPolygonClick={(feat: any) => {
