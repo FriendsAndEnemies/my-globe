@@ -4,7 +4,7 @@ import Globe from 'react-globe.gl'
 import * as THREE from 'three'
 import { feature } from 'topojson-client'
 import { presimplify, simplify } from 'topojson-simplify'
-import DebugPanel from './DebugPanel'
+import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js'
 
 type GroupKey = 'CAN' | 'USA' | 'GBR' | 'CHN' | 'AUS'
 
@@ -324,6 +324,7 @@ export default function App() {
     const RADIUS = 100
     const scene = globe.scene()
     const glowGroup = new THREE.Group()
+    glowGroup.userData.excludeFromExport = true;   // add this line
     scene.add(glowGroup)
     const innerMat = new THREE.ShaderMaterial({
       uniforms: { p: { value: 1.0 }, strength: { value: 0.8 }, glowColor: { value: new THREE.Color(0xffffff) } },
@@ -410,25 +411,15 @@ export default function App() {
     <div id="globeRoot">
       {/* Debug Toggle Button */}
       <button
-        onClick={() => setDebugMode(prev => !prev)}
-        style={{
-          position: 'absolute',
-          top: '10px',
-          left: '10px',
-          background: debugMode ? '#0f0' : 'rgba(0, 0, 0, 0.7)',
-          color: debugMode ? '#000' : '#0f0',
-          border: '1px solid #0f0',
-          padding: '8px 12px',
-          borderRadius: '4px',
-          cursor: 'pointer',
-          fontSize: '12px',
-          fontWeight: 'bold',
-          zIndex: 1001,
-          fontFamily: 'monospace'
-        }}
-      >
-        {debugMode ? 'HIDE DEBUG' : 'SHOW DEBUG'}
-      </button>
+  onClick={exportGlobeGLB}
+  style={{
+    position: 'absolute', top: 16, right: 16, zIndex: 10,
+    background: '#111', color: '#fff', border: '1px solid #333',
+    padding: '6px 10px', borderRadius: 6, cursor: 'pointer'
+  }}
+>
+  Export GLB
+</button>
 
       {labelInfo && (
         <div className="country-label">
@@ -491,4 +482,53 @@ function setAutoRotate(globeRef: React.RefObject<any>, on: boolean) {
   if (!g) return
   const controls = g.controls()
   controls.autoRotate = on
+}
+
+function download(file: Blob, name: string) {
+  const url = URL.createObjectURL(file)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = name
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  URL.revokeObjectURL(url)
+}
+
+function exportGlobeGLB() {
+  const g = globeRef.current
+  if (!g) return
+
+  // Clone so we can strip things without touching the live scene
+  const scene = g.scene().clone(true)
+
+  // Remove glow/shaders/helpers/etc.
+  const toRemove: THREE.Object3D[] = []
+  scene.traverse(obj => {
+    // remove anything you tagged
+    if ((obj as any).userData?.excludeFromExport) toRemove.push(obj)
+    // strip helpers just in case
+    if (obj.type === 'AxesHelper' || obj.type === 'GridHelper') toRemove.push(obj)
+  })
+  toRemove.forEach(o => o.parent?.remove(o))
+
+  // Export
+  const exporter = new GLTFExporter()
+  exporter.parse(
+    scene,
+    (result) => {
+      // binary .glb
+      const blob =
+        result instanceof ArrayBuffer
+          ? new Blob([result], { type: 'model/gltf-binary' })
+          : new Blob([JSON.stringify(result)], { type: 'model/gltf+json' })
+
+      download(blob, 'globe.glb')
+    },
+    {
+      binary: true,
+      onlyVisible: true,          // ignores any hidden objects
+      includeCustomExtensions: false
+    }
+  )
 }
