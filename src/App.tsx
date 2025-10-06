@@ -4,7 +4,6 @@ import Globe from 'react-globe.gl'
 import * as THREE from 'three'
 import { feature } from 'topojson-client'
 import { presimplify, simplify } from 'topojson-simplify'
-import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js'
 
 type GroupKey = 'CAN' | 'USA' | 'GBR' | 'CHN' | 'AUS'
 
@@ -146,75 +145,6 @@ export default function App() {
   const fadeRAF = useRef<number | null>(null)
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
   const globeMat = useMemo(() => useFlatGlobeMaterial(), [])
-
-  const download = (file: Blob, name: string) => {
-    const url = URL.createObjectURL(file)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = name
-    document.body.appendChild(a)
-    a.click()
-    a.remove()
-    URL.revokeObjectURL(url)
-  }
-
-  const exportGlobeGLB = () => {
-    const g = globeRef.current
-    if (!g) return
-
-    const scene = g.scene()
-    
-    // Find just the globe mesh (not the glow effects or other objects)
-    let globeMesh: any = null
-    scene.traverse((obj: any) => {
-      // Look for the main globe mesh - it should be a Mesh with geometry
-      if (obj.isMesh && obj.geometry && !obj.material?.isShaderMaterial) {
-        // The globe sphere should have a reasonably high vertex count
-        if (obj.geometry.attributes?.position?.count > 1000) {
-          globeMesh = obj
-        }
-      }
-    })
-
-    if (!globeMesh) {
-      console.error('Could not find globe mesh to export')
-      alert('Could not find globe mesh to export')
-      return
-    }
-
-    // Create a simple scene with just the globe
-    const exportScene = new THREE.Scene()
-    const globeClone = new THREE.Mesh(
-      globeMesh.geometry.clone(),
-      new THREE.MeshBasicMaterial({ 
-        color: globeMesh.material.color || 0x0b0b0b,
-        side: THREE.DoubleSide
-      })
-    )
-    globeClone.rotation.copy(globeMesh.rotation)
-    globeClone.position.copy(globeMesh.position)
-    globeClone.scale.copy(globeMesh.scale)
-    exportScene.add(globeClone)
-
-    const exporter = new GLTFExporter()
-    exporter.parse(
-      exportScene,
-      (result: any) => {
-        const blob =
-          result instanceof ArrayBuffer
-            ? new Blob([result], { type: 'model/gltf-binary' })
-            : new Blob([JSON.stringify(result)], { type: 'model/gltf+json' })
-
-        download(blob, 'globe.glb')
-        console.log('Globe exported successfully!')
-      },
-      (error: any) => {
-        console.error('GLB export error:', error)
-        alert('Export failed. Check console for details.')
-      },
-      { binary: true }
-    )
-  }
 
   useEffect(() => {
     const updateDimensions = () => {
