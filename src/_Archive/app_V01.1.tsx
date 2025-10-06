@@ -1,9 +1,10 @@
 // src/App.tsx
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import Globe from 'react-globe.gl'
+import Globe, { type GlobeMethods } from 'react-globe.gl';
 import * as THREE from 'three'
 import { feature } from 'topojson-client'
 import { presimplify, simplify } from 'topojson-simplify'
+import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js'
 
 type GroupKey = 'CAN' | 'USA' | 'GBR' | 'CHN' | 'AUS'
 
@@ -122,6 +123,10 @@ void main() {
   gl_FragColor = vec4(glowColor * i, i);
 }
 `
+const globeRef = useRef<GlobeMethods | undefined>(undefined);
+// If TS complains for any reason, the looser fallback also works:
+// const globeRef = useRef<any>(null);
+
 
 function useUrlParams() {
   const [params, setParams] = useState<URLSearchParams>(new URLSearchParams())
@@ -143,6 +148,7 @@ export default function App() {
   const [selected, setSelected] = useState<any>(null)
   const [fadeT, setFadeT] = useState(0)
   const fadeRAF = useRef<number | null>(null)
+  const [currentPOV, setCurrentPOV] = useState({ lat: 0, lng: 0, altitude: 0 })
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
   const globeMat = useMemo(() => useFlatGlobeMaterial(), [])
 
@@ -235,6 +241,9 @@ export default function App() {
     }
   }, [])
 
+  
+  
+
   useEffect(() => {
     if (!geoJson?.features || !globeRef.current) return
     const focusParam = urlParams.get('focus')?.toUpperCase() as GroupKey | null
@@ -304,6 +313,7 @@ export default function App() {
     const RADIUS = 100
     const scene = globe.scene()
     const glowGroup = new THREE.Group()
+    glowGroup.userData.excludeFromExport = true;   // add this line
     scene.add(glowGroup)
     const innerMat = new THREE.ShaderMaterial({
       uniforms: { p: { value: 1.0 }, strength: { value: 0.8 }, glowColor: { value: new THREE.Color(0xffffff) } },
@@ -388,6 +398,17 @@ export default function App() {
 
   return (
     <div id="globeRoot">
+      <button
+  onClick={exportGlobeGLB}
+  style={{
+    position: 'absolute', top: 16, right: 16, zIndex: 10,
+    background: '#111', color: '#fff', border: '1px solid #333',
+    padding: '6px 10px', borderRadius: 6, cursor: 'pointer'
+  }}
+>
+  Export GLB
+</button>
+
       {labelInfo && (
         <div className="country-label">
           <h2>{labelInfo.name}</h2>
@@ -404,6 +425,8 @@ export default function App() {
           </div>
         </div>
       )}
+      
+      
       
       <div className="globeStage" ref={containerRef}>
         {!geoJson?.features && (<div style={{ position: 'absolute', top: 12, left: 12, fontSize: 12, opacity: 0.7, pointerEvents: 'none' }}>Loading country polygons</div>)}
@@ -440,4 +463,53 @@ function setAutoRotate(globeRef: React.RefObject<any>, on: boolean) {
   if (!g) return
   const controls = g.controls()
   controls.autoRotate = on
+}
+
+function download(file: Blob, name: string) {
+  const url = URL.createObjectURL(file)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = name
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  URL.revokeObjectURL(url)
+}
+
+function exportGlobeGLB() {
+  const g = globeRef.current
+  if (!g) return
+
+  // Clone so we can strip things without touching the live scene
+  const scene = g.scene().clone(true)
+
+  // Remove glow/shaders/helpers/etc.
+  const toRemove: THREE.Object3D[] = []
+  scene.traverse(obj => {
+    // remove anything you tagged
+    if ((obj as any).userData?.excludeFromExport) toRemove.push(obj)
+    // strip helpers just in case
+    if (obj.type === 'AxesHelper' || obj.type === 'GridHelper') toRemove.push(obj)
+  })
+  toRemove.forEach(o => o.parent?.remove(o))
+
+  // Export
+  const exporter = new GLTFExporter()
+  exporter.parse(
+    scene,
+    (result) => {
+      // binary .glb
+      const blob =
+        result instanceof ArrayBuffer
+          ? new Blob([result], { type: 'model/gltf-binary' })
+          : new Blob([JSON.stringify(result)], { type: 'model/gltf+json' })
+
+      download(blob, 'globe.glb')
+    },
+    {
+      binary: true,
+      onlyVisible: true,          // ignores any hidden objects
+      includeCustomExtensions: false
+    }
+  )
 }
