@@ -24,11 +24,11 @@ const COUNTRY_STATS: Record<string, { offices: number; employees: number }> = {
 }
 
 const CUSTOM_VIEWS: Record<GroupKey, { lat: number; lng: number; altitude: number }> = {
-  CAN: { lat: 40.61, lng: -98.85, altitude: 1.80 },
-  USA: { lat: 27.00, lng: -95.21, altitude: 1.80 },
-  GBR: { lat: 32.66, lng: -1.34, altitude: 1.80 },
-  CHN: { lat: 20.23, lng: 105.72, altitude: 1.80 },
-  AUS: { lat: -47.68, lng: 136.88, altitude: 1.80 }
+  CAN: { lat: 40.61, lng: -98.85, altitude: 1.60 },
+  USA: { lat: 27.00, lng: -95.21, altitude: 1.60 },
+  GBR: { lat: 32.66, lng: -1.34, altitude: 1.60 },
+  CHN: { lat: 20.23, lng: 105.72, altitude: 1.60 },
+  AUS: { lat: -47.68, lng: 136.88, altitude: 1.60 }
 }
 
 const COLOR_DARK = 'rgba(45,45,45,1)'
@@ -392,7 +392,7 @@ export function App() {
         <div style={{ 
           position: 'absolute',
           top: '24px',
-          left: '80px',
+          left: '50%',
           transform: 'translateX(-50%)',
           display: 'flex',
           flexDirection: 'column',
@@ -400,43 +400,18 @@ export function App() {
           pointerEvents: 'none',
           zIndex: 100
         }}>
-          {/* Connecting Line */}
-          <svg 
-            style={{
-              position: 'absolute',
-              left: '-60px',
-              top: '50px',
-              width: '2px',
-              height: '200px',
-              pointerEvents: 'none'
-            }}
-          >
-            <defs>
-              <linearGradient id="lineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#FFFFFF" />
-                <stop offset="100%" stopColor="#1A5999" />
-              </linearGradient>
-            </defs>
-            <line 
-              x1="1" 
-              y1="0" 
-              x2="1" 
-              y2="200" 
-              stroke="url(#lineGradient)" 
-              strokeWidth="2"
-            />
-          </svg>
-
           {/* Label Card */}
-          <div className="country-label">
+          <div className="country-label" style={{
+              alignItems:"left"
+            }}>
             <h2 style={{
               fontFamily: "'Canaccord Effra Bold', sans-serif",
-              fontSize: '.8rem',
+              fontSize: '.6rem',
               color: '#AEAEAE',
               textTransform: 'uppercase',
               fontWeight: 'bold',
               margin: 0,
-              marginBottom: '24px',
+              marginBottom: '16px',
               letterSpacing: '0.05em'
             }}>
               {labelInfo.name}
@@ -463,7 +438,7 @@ export function App() {
                 </div>
                 <div className="label" style={{
                   fontFamily: "'Canaccord Effra Regular', sans-serif",
-                  fontSize: '1rem',
+                  fontSize: '.8rem',
                   color: '#FFFFFF',
                   textTransform: 'none'
                 }}>
@@ -494,7 +469,7 @@ export function App() {
                 </div>
                 <div className="label" style={{
                   fontFamily: "'Canaccord Effra Regular', sans-serif",
-                  fontSize: '1rem',
+                  fontSize: '.8rem',
                   color: '#FFFFFF',
                   textTransform: 'none'
                 }}>
