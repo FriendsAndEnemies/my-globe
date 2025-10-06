@@ -165,11 +165,11 @@ export default function App() {
     const scene = g.scene().clone(true)
 
     const toRemove: THREE.Object3D[] = []
-    scene.traverse(obj => {
-      if ((obj as any).userData?.excludeFromExport) toRemove.push(obj)
+    scene.traverse((obj: any) => {
+      if (obj.userData?.excludeFromExport) toRemove.push(obj)
       if (obj.type === 'AxesHelper' || obj.type === 'GridHelper') toRemove.push(obj)
     })
-    toRemove.forEach(o => o.parent?.remove(o))
+    toRemove.forEach((o: any) => o.parent?.remove(o))
 
     const exporter = new GLTFExporter()
     exporter.parse(
