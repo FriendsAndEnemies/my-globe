@@ -162,19 +162,26 @@ export default function App() {
     const g = globeRef.current
     if (!g) return
 
-    const scene = g.scene().clone(true)
+    const scene = g.scene()
 
-    const toRemove: THREE.Object3D[] = []
+    // Temporarily hide objects we don't want to export
+    const hiddenObjects: Array<{ obj: any; wasVisible: boolean }> = []
     scene.traverse((obj: any) => {
-      if (obj.userData?.excludeFromExport) toRemove.push(obj)
-      if (obj.type === 'AxesHelper' || obj.type === 'GridHelper') toRemove.push(obj)
+      if (obj.userData?.excludeFromExport || obj.type === 'AxesHelper' || obj.type === 'GridHelper') {
+        hiddenObjects.push({ obj, wasVisible: obj.visible })
+        obj.visible = false
+      }
     })
-    toRemove.forEach((o: any) => o.parent?.remove(o))
 
     const exporter = new GLTFExporter()
     exporter.parse(
       scene,
-      (result) => {
+      (result: any) => {
+        // Restore visibility
+        hiddenObjects.forEach(({ obj, wasVisible }) => {
+          obj.visible = wasVisible
+        })
+
         const blob =
           result instanceof ArrayBuffer
             ? new Blob([result], { type: 'model/gltf-binary' })
@@ -182,9 +189,14 @@ export default function App() {
 
         download(blob, 'globe.glb')
       },
-      (error) => {
+      (error: any) => {
+        // Restore visibility on error too
+        hiddenObjects.forEach(({ obj, wasVisible }) => {
+          obj.visible = wasVisible
+        })
         console.error('GLB export error:', error)
-      }
+      },
+      { binary: true, onlyVisible: true }
     )
   }
 
