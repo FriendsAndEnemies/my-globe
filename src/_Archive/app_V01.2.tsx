@@ -134,7 +134,7 @@ function useUrlParams() {
   return params
 }
 
-export function App({ onCountrySelect }: { onCountrySelect?: (data: any) => void }) {
+export default function App() {
   const globeRef = useRef<any>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const urlParams = useUrlParams()
@@ -508,39 +508,7 @@ export function App({ onCountrySelect }: { onCountrySelect?: (data: any) => void
       
       <div className="globeStage" ref={containerRef} style={{ position: 'absolute', inset: 0, pointerEvents: 'auto' }}>
         {!geoJson?.features && (<div style={{ position: 'absolute', top: 12, left: 12, fontSize: 12, opacity: 0.7, pointerEvents: 'none' }}>Loading country polygons</div>)}
-        <Globe ref={globeRef} width={dimensions.width} height={dimensions.height} backgroundColor="rgba(0,0,0,0)" showAtmosphere={true} atmosphereColor="#ffffff" atmosphereAltitude={0.2} globeMaterial={globeMat} rendererConfig={{ antialias: true, alpha: true, logarithmicDepthBuffer: true }} polygonsData={geoJson?.features || []} polygonCapColor={polygonCapColor} polygonSideColor={polygonSideColor} polygonStrokeColor={polygonStrokeColor} polygonAltitude={polygonAltitude} polygonsTransitionDuration={0} onPolygonHover={(f: any) => setHovered(f && isSelectable(f) ? f : null)} 
-          onPolygonClick={(feat: any) => {
-  if (!isSelectable(feat)) return
-
-  const gid = groupId(feat) as GroupKey | null
-  if (gid && CUSTOM_VIEWS[gid]) {
-    animatePOV(CUSTOM_VIEWS[gid], 1000, easeInOut)
-  } else {
-    const [lng0, lat0] = sphericalCentroid(feat)
-    const lat = applyScreenLift(lat0)
-    animatePOV({ lat, lng: lng0, altitude: 1.8 }, 1000, easeInOut)
-  }
-
-  startEasedFade(500, 1000)
-  setSelected(feat)
-  setAutoRotate(globeRef, false)
-
-  // 🔔 Notify parent frame (Framer) of selected country
-  if (window.parent) {
-    window.parent.postMessage(
-      {
-        type: "country-selected",
-        payload: {
-          name: getFeatName(feat),
-          iso: getFeatISO3(feat),
-          group: groupId(feat),
-        },
-      },
-      "*"
-    )
-  }
-}}
-    } }} enablePointerInteraction={true} />
+        <Globe ref={globeRef} width={dimensions.width} height={dimensions.height} backgroundColor="rgba(0,0,0,0)" showAtmosphere={true} atmosphereColor="#ffffff" atmosphereAltitude={0.2} globeMaterial={globeMat} rendererConfig={{ antialias: true, alpha: true, logarithmicDepthBuffer: true }} polygonsData={geoJson?.features || []} polygonCapColor={polygonCapColor} polygonSideColor={polygonSideColor} polygonStrokeColor={polygonStrokeColor} polygonAltitude={polygonAltitude} polygonsTransitionDuration={0} onPolygonHover={(f: any) => setHovered(f && isSelectable(f) ? f : null)} onPolygonClick={(feat: any) => { if (!isSelectable(feat)) return; const gid = groupId(feat) as GroupKey | null; if (gid && CUSTOM_VIEWS[gid]) { animatePOV(CUSTOM_VIEWS[gid], 1000, easeInOut) } else { const [lng0, lat0] = sphericalCentroid(feat); const lat = applyScreenLift(lat0); animatePOV({ lat, lng: lng0, altitude: 1.8 }, 1000, easeInOut) }; startEasedFade(500, 1000); setSelected(feat); setAutoRotate(globeRef, false) }} enablePointerInteraction={true} />
       </div>
     </div>
   )
