@@ -430,7 +430,7 @@ export default function App() {
           <div className="country-label">
             <h2 style={{
               fontFamily: "'Canaccord Effra Bold', sans-serif",
-              fontSize: '1.1rem',
+              fontSize: '0.8rem',
               color: '#AEAEAE',
               textTransform: 'uppercase',
               fontWeight: 'bold',
