@@ -134,7 +134,7 @@ function useUrlParams() {
   return params
 }
 
-export function App({ onCountrySelect }: { onCountrySelect?: (data: any) => void }) {
+export function App() {
   const globeRef = useRef<any>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const urlParams = useUrlParams()
