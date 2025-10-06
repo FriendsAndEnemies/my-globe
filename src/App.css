@@ -26,7 +26,7 @@ html, body, #root {
   max-width: none;
   padding: 0;
   margin: 0;
-  text-align: unset;
+  text-align: left;
 }
 
 /* ===== Globe layout (no lower-third trick) ===== */
