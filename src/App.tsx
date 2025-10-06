@@ -248,7 +248,7 @@ export default function App() {
       } else {
         const [lng0, lat0] = sphericalCentroid(targetFeature)
         const lat = applyScreenLift(lat0)
-        animatePOV({ lat, lng: lng0, altitude: 1.6 }, 1500, easeInOut)
+        animatePOV({ lat, lng: lng0, altitude: 1.8 }, 1500, easeInOut)
       }
       startEasedFade(800, 1000)
       setSelected(targetFeature)
@@ -295,7 +295,7 @@ export default function App() {
   useEffect(() => {
     const lat0 = 40, lng0 = -10
     const lat = applyScreenLift(lat0)
-    globeRef.current?.pointOfView({ lat, lng: lng0, altitude: 1.6 }, 0)
+    globeRef.current?.pointOfView({ lat, lng: lng0, altitude: 1.8 }, 0)
   }, [])
 
   useEffect(() => {
@@ -390,24 +390,85 @@ export default function App() {
     <div id="globeRoot">
       {labelInfo && (
         <div className="country-label" style={{ pointerEvents: 'none' }}>
-          <h2>{labelInfo.name}</h2>
-          <div className="country-metrics">
-            <div className="metric">
-              <div className="num">{labelInfo.offices}</div>
-              <div className="label">Offices</div>
+          <h2 style={{
+            fontFamily: "'Canaccord Effra Bold', sans-serif",
+            fontSize: '1.1rem',
+            color: '#AEAEAE',
+            textTransform: 'uppercase',
+            fontWeight: 'bold',
+            margin: 0,
+            marginBottom: '24px',
+            letterSpacing: '0.05em'
+          }}>
+            {labelInfo.name}
+          </h2>
+          <div className="country-metrics" style={{
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: '24px'
+          }}>
+            <div className="metric" style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-start',
+              gap: '12px'
+            }}>
+              <div className="num" style={{
+                fontFamily: "'Alike', serif",
+                fontSize: '2rem',
+                fontWeight: 400,
+                color: '#FFFFFF'
+              }}>
+                {labelInfo.offices}
+              </div>
+              <div className="label" style={{
+                fontFamily: "'Canaccord Effra Regular', sans-serif",
+                fontSize: '1rem',
+                color: '#FFFFFF',
+                textTransform: 'none'
+              }}>
+                Offices
+              </div>
             </div>
-            <div className="divider">/</div>
-            <div className="metric">
-              <div className="num">{labelInfo.employees}</div>
-              <div className="label">Employees</div>
+            <div className="divider" style={{
+              fontSize: '2rem',
+              color: '#AEAEAE',
+              lineHeight: '1',
+              alignSelf: 'stretch',
+              display: 'flex',
+              alignItems: 'center'
+            }}>/</div>
+            <div className="metric" style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-start',
+              gap: '12px'
+            }}>
+              <div className="num" style={{
+                fontFamily: "'Alike', serif",
+                fontSize: '2rem',
+                fontWeight: 400,
+                color: '#FFFFFF'
+              }}>
+                {labelInfo.employees}
+              </div>
+              <div className="label" style={{
+                fontFamily: "'Canaccord Effra Regular', sans-serif",
+                fontSize: '1rem',
+                color: '#FFFFFF',
+                textTransform: 'none'
+              }}>
+                Employees
+              </div>
             </div>
           </div>
         </div>
       )}
       
-      <div className="globeStage" ref={containerRef}>
+      <div className="globeStage" ref={containerRef} style={{ position: 'absolute', inset: 0, pointerEvents: 'auto' }}>
         {!geoJson?.features && (<div style={{ position: 'absolute', top: 12, left: 12, fontSize: 12, opacity: 0.7, pointerEvents: 'none' }}>Loading country polygons</div>)}
-        <Globe ref={globeRef} width={dimensions.width} height={dimensions.height} backgroundColor="rgba(0,0,0,0)" showAtmosphere={true} atmosphereColor="#ffffff" atmosphereAltitude={0.2} globeMaterial={globeMat} rendererConfig={{ antialias: true, alpha: true, logarithmicDepthBuffer: true }} polygonsData={geoJson?.features || []} polygonCapColor={polygonCapColor} polygonSideColor={polygonSideColor} polygonStrokeColor={polygonStrokeColor} polygonAltitude={polygonAltitude} polygonsTransitionDuration={0} onPolygonHover={(f: any) => setHovered(f && isSelectable(f) ? f : null)} onPolygonClick={(feat: any) => { if (!isSelectable(feat)) return; const gid = groupId(feat) as GroupKey | null; if (gid && CUSTOM_VIEWS[gid]) { animatePOV(CUSTOM_VIEWS[gid], 1000, easeInOut) } else { const [lng0, lat0] = sphericalCentroid(feat); const lat = applyScreenLift(lat0); animatePOV({ lat, lng: lng0, altitude: 1.6 }, 1000, easeInOut) }; startEasedFade(500, 1000); setSelected(feat); setAutoRotate(globeRef, false) }} enablePointerInteraction={true} />
+        <Globe ref={globeRef} width={dimensions.width} height={dimensions.height} backgroundColor="rgba(0,0,0,0)" showAtmosphere={true} atmosphereColor="#ffffff" atmosphereAltitude={0.2} globeMaterial={globeMat} rendererConfig={{ antialias: true, alpha: true, logarithmicDepthBuffer: true }} polygonsData={geoJson?.features || []} polygonCapColor={polygonCapColor} polygonSideColor={polygonSideColor} polygonStrokeColor={polygonStrokeColor} polygonAltitude={polygonAltitude} polygonsTransitionDuration={0} onPolygonHover={(f: any) => setHovered(f && isSelectable(f) ? f : null)} onPolygonClick={(feat: any) => { if (!isSelectable(feat)) return; const gid = groupId(feat) as GroupKey | null; if (gid && CUSTOM_VIEWS[gid]) { animatePOV(CUSTOM_VIEWS[gid], 1000, easeInOut) } else { const [lng0, lat0] = sphericalCentroid(feat); const lat = applyScreenLift(lat0); animatePOV({ lat, lng: lng0, altitude: 1.8 }, 1000, easeInOut) }; startEasedFade(500, 1000); setSelected(feat); setAutoRotate(globeRef, false) }} enablePointerInteraction={true} />
       </div>
     </div>
   )
