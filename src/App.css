@@ -1,3 +1,18 @@
+/* Load Canaccord Effra fonts */
+@font-face {
+  font-family: 'Canaccord Effra Bold';
+  src: url('/fonts/CanaccordEffra_Bd.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Canaccord Effra Regular';
+  src: url('/fonts/CanaccordEffra_Rg.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 /* ===== Baseline ===== */
 html, body, #root {
   height: 100%;
