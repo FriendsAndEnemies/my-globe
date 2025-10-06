@@ -164,12 +164,24 @@ export default function App() {
 
     const scene = g.scene()
 
-    // Temporarily hide objects we don't want to export
-    const hiddenObjects: Array<{ obj: any; wasVisible: boolean }> = []
+    // Remove objects we don't want to export (and save references to restore them)
+    const removedObjects: Array<{ obj: any; parent: any }> = []
+    const toRemove: any[] = []
+    
     scene.traverse((obj: any) => {
       if (obj.userData?.excludeFromExport || obj.type === 'AxesHelper' || obj.type === 'GridHelper') {
-        hiddenObjects.push({ obj, wasVisible: obj.visible })
-        obj.visible = false
+        toRemove.push(obj)
+      }
+      // Also remove any objects with shader materials (they cause cloning issues)
+      if (obj.material && obj.material.isShaderMaterial) {
+        toRemove.push(obj)
+      }
+    })
+
+    toRemove.forEach((obj: any) => {
+      if (obj.parent) {
+        removedObjects.push({ obj, parent: obj.parent })
+        obj.parent.remove(obj)
       }
     })
 
@@ -177,9 +189,9 @@ export default function App() {
     exporter.parse(
       scene,
       (result: any) => {
-        // Restore visibility
-        hiddenObjects.forEach(({ obj, wasVisible }) => {
-          obj.visible = wasVisible
+        // Restore removed objects
+        removedObjects.forEach(({ obj, parent }) => {
+          parent.add(obj)
         })
 
         const blob =
@@ -190,13 +202,13 @@ export default function App() {
         download(blob, 'globe.glb')
       },
       (error: any) => {
-        // Restore visibility on error too
-        hiddenObjects.forEach(({ obj, wasVisible }) => {
-          obj.visible = wasVisible
+        // Restore removed objects on error too
+        removedObjects.forEach(({ obj, parent }) => {
+          parent.add(obj)
         })
         console.error('GLB export error:', error)
       },
-      { binary: true, onlyVisible: true }
+      { binary: true }
     )
   }
 
