@@ -163,50 +163,54 @@ export default function App() {
     if (!g) return
 
     const scene = g.scene()
-
-    // Remove objects we don't want to export (and save references to restore them)
-    const removedObjects: Array<{ obj: any; parent: any }> = []
-    const toRemove: any[] = []
     
+    // Find just the globe mesh (not the glow effects or other objects)
+    let globeMesh: any = null
     scene.traverse((obj: any) => {
-      if (obj.userData?.excludeFromExport || obj.type === 'AxesHelper' || obj.type === 'GridHelper') {
-        toRemove.push(obj)
-      }
-      // Also remove any objects with shader materials (they cause cloning issues)
-      if (obj.material && obj.material.isShaderMaterial) {
-        toRemove.push(obj)
+      // Look for the main globe mesh - it should be a Mesh with geometry
+      if (obj.isMesh && obj.geometry && !obj.material?.isShaderMaterial) {
+        // The globe sphere should have a reasonably high vertex count
+        if (obj.geometry.attributes?.position?.count > 1000) {
+          globeMesh = obj
+        }
       }
     })
 
-    toRemove.forEach((obj: any) => {
-      if (obj.parent) {
-        removedObjects.push({ obj, parent: obj.parent })
-        obj.parent.remove(obj)
-      }
-    })
+    if (!globeMesh) {
+      console.error('Could not find globe mesh to export')
+      alert('Could not find globe mesh to export')
+      return
+    }
+
+    // Create a simple scene with just the globe
+    const exportScene = new THREE.Scene()
+    const globeClone = new THREE.Mesh(
+      globeMesh.geometry.clone(),
+      new THREE.MeshBasicMaterial({ 
+        color: globeMesh.material.color || 0x0b0b0b,
+        side: THREE.DoubleSide
+      })
+    )
+    globeClone.rotation.copy(globeMesh.rotation)
+    globeClone.position.copy(globeMesh.position)
+    globeClone.scale.copy(globeMesh.scale)
+    exportScene.add(globeClone)
 
     const exporter = new GLTFExporter()
     exporter.parse(
-      scene,
+      exportScene,
       (result: any) => {
-        // Restore removed objects
-        removedObjects.forEach(({ obj, parent }) => {
-          parent.add(obj)
-        })
-
         const blob =
           result instanceof ArrayBuffer
             ? new Blob([result], { type: 'model/gltf-binary' })
             : new Blob([JSON.stringify(result)], { type: 'model/gltf+json' })
 
         download(blob, 'globe.glb')
+        console.log('Globe exported successfully!')
       },
       (error: any) => {
-        // Restore removed objects on error too
-        removedObjects.forEach(({ obj, parent }) => {
-          parent.add(obj)
-        })
         console.error('GLB export error:', error)
+        alert('Export failed. Check console for details.')
       },
       { binary: true }
     )
