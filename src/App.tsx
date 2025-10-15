@@ -24,11 +24,11 @@ const COUNTRY_STATS: Record<string, { offices: number; employees: number }> = {
 }
 
 const CUSTOM_VIEWS: Record<GroupKey, { lat: number; lng: number; altitude: number }> = {
-  CAN: { lat: 40.61, lng: -98.85, altitude: 1.60 },
-  USA: { lat: 27.00, lng: -95.21, altitude: 1.60 },
-  GBR: { lat: 32.66, lng: -1.34, altitude: 1.60 },
-  CHN: { lat: 20.23, lng: 105.72, altitude: 1.60 },
-  AUS: { lat: -47.68, lng: 136.88, altitude: 1.60 }
+  CAN: { lat: 40.61, lng: -98.85, altitude: 1.80 },
+  USA: { lat: 27.00, lng: -95.21, altitude: 1.80 },
+  GBR: { lat: 32.66, lng: -1.34, altitude: 1.80 },
+  CHN: { lat: 20.23, lng: 105.72, altitude: 1.80 },
+  AUS: { lat: -47.68, lng: 136.88, altitude: 1.80 }
 }
 
 const COLOR_DARK = 'rgba(45,45,45,1)'
@@ -134,7 +134,7 @@ function useUrlParams() {
   return params
 }
 
-export function App() {
+export default function App() {
   const globeRef = useRef<any>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const urlParams = useUrlParams()
@@ -388,39 +388,64 @@ export function App() {
 
   return (
     <div id="globeRoot">
-      {labelInfo && (
+      {false && labelInfo && (
         <div style={{ 
           position: 'absolute',
           top: '24px',
-          left: '50%',
-          transform: 'translateX(-50%)',
+          left: '80px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'flex-start',
           pointerEvents: 'none',
           zIndex: 100
         }}>
+          {/* Connecting Line */}
+          <svg 
+            style={{
+              position: 'absolute',
+              left: '-60px',
+              top: '50px',
+              width: '2px',
+              height: '200px',
+              pointerEvents: 'none'
+            }}
+          >
+            <defs>
+              <linearGradient id="lineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#FFFFFF" />
+                <stop offset="100%" stopColor="#1A5999" />
+              </linearGradient>
+            </defs>
+            <line 
+              x1="1" 
+              y1="0" 
+              x2="1" 
+              y2="200" 
+              stroke="url(#lineGradient)" 
+              strokeWidth="2"
+            />
+          </svg>
+
           {/* Label Card */}
-          <div className="country-label" style={{
-              alignItems:"left"
-            }}>
+          <div className="country-label">
             <h2 style={{
               fontFamily: "'Canaccord Effra Bold', sans-serif",
-              fontSize: '.6rem',
+              fontSize: '1.1rem',
               color: '#AEAEAE',
               textTransform: 'uppercase',
               fontWeight: 'bold',
               margin: 0,
-              marginBottom: '16px',
-              letterSpacing: '0.05em'
+              marginBottom: '24px',
+              letterSpacing: '0.05em',
+              textAlign: 'left'
             }}>
               {labelInfo.name}
             </h2>
             <div className="country-metrics" style={{
               display: 'flex',
               flexDirection: 'row',
-              alignItems: 'center',
-              gap: '12px'
+              alignItems: 'flex-start',
+              gap: '24px'
             }}>
               <div className="metric" style={{
                 display: 'flex',
@@ -432,13 +457,14 @@ export function App() {
                   fontFamily: "'Alike', serif",
                   fontSize: '2rem',
                   fontWeight: 400,
-                  color: '#FFFFFF'
+                  color: '#FFFFFF',
+                  lineHeight: '1'
                 }}>
                   {labelInfo.offices}
                 </div>
                 <div className="label" style={{
                   fontFamily: "'Canaccord Effra Regular', sans-serif",
-                  fontSize: '.8rem',
+                  fontSize: '1rem',
                   color: '#FFFFFF',
                   textTransform: 'none'
                 }}>
@@ -463,13 +489,14 @@ export function App() {
                   fontFamily: "'Alike', serif",
                   fontSize: '2rem',
                   fontWeight: 400,
-                  color: '#FFFFFF'
+                  color: '#FFFFFF',
+                  lineHeight: '1'
                 }}>
                   {labelInfo.employees}
                 </div>
                 <div className="label" style={{
                   fontFamily: "'Canaccord Effra Regular', sans-serif",
-                  fontSize: '.8rem',
+                  fontSize: '1rem',
                   color: '#FFFFFF',
                   textTransform: 'none'
                 }}>
@@ -481,40 +508,9 @@ export function App() {
         </div>
       )}
       
-      <div className="globeStage" ref={containerRef} style={{ position: 'absolute', top: '-80px', right: 0, bottom: 0, left: 0, pointerEvents: 'auto' }}>
+      <div className="globeStage" ref={containerRef} style={{ position: 'absolute', inset: 0, pointerEvents: 'auto' }}>
         {!geoJson?.features && (<div style={{ position: 'absolute', top: 12, left: 12, fontSize: 12, opacity: 0.7, pointerEvents: 'none' }}>Loading country polygons</div>)}
-        <Globe ref={globeRef} width={dimensions.width} height={dimensions.height} backgroundColor="rgba(0,0,0,0)" showAtmosphere={true} atmosphereColor="#ffffff" atmosphereAltitude={0.2} globeMaterial={globeMat} rendererConfig={{ antialias: true, alpha: true, logarithmicDepthBuffer: true }} polygonsData={geoJson?.features || []} polygonCapColor={polygonCapColor} polygonSideColor={polygonSideColor} polygonStrokeColor={polygonStrokeColor} polygonAltitude={polygonAltitude} polygonsTransitionDuration={0} onPolygonHover={(f: any) => setHovered(f && isSelectable(f) ? f : null)} 
-          onPolygonClick={(feat: any) => {
-  if (!isSelectable(feat)) return
-
-  const gid = groupId(feat) as GroupKey | null
-  if (gid && CUSTOM_VIEWS[gid]) {
-    animatePOV(CUSTOM_VIEWS[gid], 1000, easeInOut)
-  } else {
-    const [lng0, lat0] = sphericalCentroid(feat)
-    const lat = applyScreenLift(lat0)
-    animatePOV({ lat, lng: lng0, altitude: 1.8 }, 1000, easeInOut)
-  }
-
-  startEasedFade(500, 1000)
-  setSelected(feat)
-  setAutoRotate(globeRef, false)
-
-  // 🔔 Notify parent frame (Framer) of selected country
-  if (window.parent) {
-    window.parent.postMessage(
-      {
-        type: "country-selected",
-        payload: {
-          name: getFeatName(feat),
-          iso: getFeatISO3(feat),
-          group: groupId(feat),
-        },
-      },
-      "*"
-    )
-  }
- }} enablePointerInteraction={true} />
+        <Globe ref={globeRef} width={dimensions.width} height={dimensions.height} backgroundColor="rgba(0,0,0,0)" showAtmosphere={true} atmosphereColor="#ffffff" atmosphereAltitude={0.2} globeMaterial={globeMat} rendererConfig={{ antialias: true, alpha: true, logarithmicDepthBuffer: true }} polygonsData={geoJson?.features || []} polygonCapColor={polygonCapColor} polygonSideColor={polygonSideColor} polygonStrokeColor={polygonStrokeColor} polygonAltitude={polygonAltitude} polygonsTransitionDuration={0} onPolygonHover={(f: any) => setHovered(f && isSelectable(f) ? f : null)} onPolygonClick={(feat: any) => { if (!isSelectable(feat)) return; const gid = groupId(feat) as GroupKey | null; if (gid && CUSTOM_VIEWS[gid]) { animatePOV(CUSTOM_VIEWS[gid], 1000, easeInOut) } else { const [lng0, lat0] = sphericalCentroid(feat); const lat = applyScreenLift(lat0); animatePOV({ lat, lng: lng0, altitude: 1.8 }, 1000, easeInOut) }; startEasedFade(500, 1000); setSelected(feat); setAutoRotate(globeRef, false) }} enablePointerInteraction={true} />
       </div>
     </div>
   )
